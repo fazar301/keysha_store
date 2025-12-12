@@ -1,0 +1,436 @@
+/* New modern login page styling - Zara-inspired fashion ecommerce */
+
+.login-page-redesigned {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  background-color: #ffffff;
+}
+
+/* Left section - Fashion image */
+.login-left-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%);
+  overflow: hidden;
+}
+
+.fashion-brand-section {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 30px;
+}
+
+.brand-logo {
+  position: absolute;
+  top: 40px;
+  left: 30px;
+}
+
+.brand-logo h1 {
+  font-family: "Montserrat", sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #000;
+  margin: 0;
+}
+
+.fashion-image {
+  max-width: 100%;
+  max-height: 70%;
+  object-fit: contain;
+  margin-bottom: 30px;
+}
+
+.brand-tagline {
+  position: absolute;
+  bottom: 40px;
+  font-family: "Lato", sans-serif;
+  font-size: 16px;
+  font-weight: 300;
+  color: #666;
+  letter-spacing: 0.5px;
+}
+
+.brand-tagline p {
+  margin: 0;
+}
+
+/* Right section - Login form */
+.login-right-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 30px;
+  background-color: #ffffff;
+}
+
+.login-form-container {
+  width: 100%;
+  max-width: 420px;
+}
+
+.form-header {
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.form-header h2 {
+  font-family: "Montserrat", sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #000;
+  margin: 0 0 12px 0;
+  letter-spacing: -0.5px;
+}
+
+.form-header .subtitle {
+  font-family: "Lato", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #999;
+  margin: 0;
+  letter-spacing: 0.3px;
+}
+
+/* Form inputs styling */
+.login-form-minimal {
+  width: 100%;
+}
+
+.form-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.form-inputs .input-box {
+  position: relative;
+}
+
+.form-inputs label {
+  font-family: "Lato", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #000;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.form-inputs .input-text {
+  font-family: "Lato", sans-serif;
+  font-size: 14px;
+  width: 100%;
+  padding: 12px 0;
+  border: none;
+  border-bottom: 1px solid #ddd;
+  background-color: transparent;
+  color: #000;
+  transition: all 0.3s ease;
+}
+
+.form-inputs .input-text:focus {
+  outline: none;
+  border-bottom-color: #000;
+  box-shadow: none;
+}
+
+.form-inputs .input-text::placeholder {
+  color: #bbb;
+}
+
+.form-inputs .input-box.invalid .input-text {
+  border-bottom-color: #e74c3c;
+}
+
+.form-inputs .invalid-message {
+  font-family: "Lato", sans-serif;
+  font-size: 12px;
+  color: #e74c3c;
+  margin-top: 6px;
+  display: block;
+}
+
+/* Social login section */
+.social-login-section {
+  margin-bottom: 32px;
+  position: relative;
+}
+
+.divider-text {
+  text-align: center;
+  font-family: "Lato", sans-serif;
+  font-size: 12px;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.divider-text::before,
+.divider-text::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 35%;
+  height: 1px;
+  background-color: #ddd;
+}
+
+.divider-text::before {
+  left: 0;
+}
+
+.divider-text::after {
+  right: 0;
+}
+
+.signup-provider {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.signup-provider a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  background-color: #fff;
+  text-decoration: none;
+  font-family: "Lato", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #666;
+  transition: all 0.3s ease;
+  border-radius: 3px;
+}
+
+.signup-provider a:hover {
+  border-color: #000;
+  background-color: #f9f9f9;
+  color: #000;
+}
+
+.signup-provider .btn-text {
+  display: inline;
+}
+
+/* Form actions */
+.form-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.form-actions .login-btn-primary {
+  background-color: #000;
+  color: #fff;
+  border: none;
+  padding: 14px 24px;
+  font-family: "Montserrat", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 2px;
+  width: 100%;
+}
+
+.form-actions .login-btn-primary:hover:not(:disabled) {
+  background-color: #333;
+}
+
+.form-actions .login-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-actions .create-account-btn {
+  background-color: transparent;
+  color: #000;
+  border: 1px solid #000;
+  padding: 12px 24px;
+  font-family: "Montserrat", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 2px;
+  width: 100%;
+}
+
+.form-actions .create-account-btn:hover {
+  background-color: #000;
+  color: #fff;
+}
+
+/* Forgot password link */
+.forgot-password-container {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.forgot-password-link {
+  font-family: "Lato", sans-serif;
+  font-size: 12px;
+  color: #666;
+  text-decoration: none;
+  transition: color 0.3s ease;
+  letter-spacing: 0.3px;
+  position: relative;
+}
+
+.forgot-password-link:hover {
+  color: #000;
+}
+
+/* Footer text */
+.footer-text {
+  text-align: center;
+  padding-top: 24px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.footer-text p {
+  font-family: "Lato", sans-serif;
+  font-size: 12px;
+  color: #999;
+  margin: 0;
+  letter-spacing: 0.3px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .login-page-redesigned {
+    height: auto;
+    flex-direction: column;
+  }
+
+  .login-left-section {
+    display: none;
+  }
+
+  .login-right-section {
+    padding: 30px 20px;
+    min-height: 100vh;
+  }
+
+  .login-form-container {
+    max-width: 100%;
+  }
+
+  .form-header h2 {
+    font-size: 24px;
+  }
+
+  .brand-logo h1 {
+    font-size: 16px;
+  }
+
+  .form-inputs {
+    gap: 20px;
+  }
+
+  .form-actions {
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-right-section {
+    padding: 20px 16px;
+  }
+
+  .form-header {
+    margin-bottom: 30px;
+  }
+
+  .form-header h2 {
+    font-size: 22px;
+  }
+
+  .login-form-container {
+    max-width: 100%;
+  }
+
+  .form-inputs .input-text {
+    font-size: 13px;
+  }
+}
+
+/* Spinner/Loading indicator styling */
+.spinner-container {
+  background-color: rgba(0, 0, 0, 0.3);
+  z-index: 9999;
+}
+
+.spinner {
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #000;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Override custom button classes */
+.custom-btn-primary {
+  background-color: #000 !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+.custom-btn-primary:hover {
+  background-color: #333 !important;
+}
+
+.custom-btn-secondary {
+  background-color: transparent !important;
+  color: #000 !important;
+  border: 1px solid #000 !important;
+}
+
+.custom-btn-secondary:hover {
+  background-color: #000 !important;
+  color: #fff !important;
+}
+
+.custom-btn-link {
+  background: none !important;
+  border: none !important;
+  color: #666 !important;
+  padding: 0 !important;
+}
+
+.custom-btn-link:hover {
+  color: #000 !important;
+}
