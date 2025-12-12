@@ -191,6 +191,7 @@ router.post(
       const taxable = req.body.taxable;
       const isActive = req.body.isActive;
       const brand = req.body.brand;
+      const sizes = req.body.sizes ? JSON.parse(req.body.sizes) : [];
       const image = req.file;
 
       if (!sku) {
@@ -225,6 +226,7 @@ router.post(
         description,
         quantity,
         price,
+        sizes,
         taxable,
         isActive,
         brand,

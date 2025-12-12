@@ -195,22 +195,101 @@ export const updateOrderItemStatus = (itemId, status) => {
   };
 };
 
-export const addOrder = () => {
+export const addOrder = (paymentMethod = 'midtrans', totalOverride = null, shippingCost = 0, discountAmount = 0) => {
   return async (dispatch, getState) => {
     try {
       const cartId = localStorage.getItem('cart_id');
-      const total = getState().cart.cartTotal;
+      const total = totalOverride !== null ? totalOverride : getState().cart.cartTotal;
 
-      if (cartId) {
-        const response = await axios.post(`${API_URL}/order/add`, {
-          cartId,
-          total
-        });
+      console.log('addOrder - cartId:', cartId, 'total:', total, 'paymentMethod:', paymentMethod, 'shipping:', shippingCost, 'discount:', discountAmount);
 
-        dispatch(push(`/order/success/${response.data.order._id}`));
-        dispatch(clearCart());
+      if (!cartId) {
+        console.error('No cartId found in localStorage');
+        handleError({ message: 'Cart ID not found. Please try again.' }, dispatch);
+        return;
+      }
+
+      const response = await axios.post(`${API_URL}/order/add`, {
+        cartId,
+        total,
+        paymentMethod,
+        shippingCost,
+        discountAmount
+      });
+
+      console.log('Order created response:', response.data);
+
+      // If Midtrans data returned, trigger Snap payment flow (prefer token, fallback to redirect_url)
+      const hasMidtrans = response.data.midtrans;
+      const token = hasMidtrans && response.data.midtrans.token;
+      const redirectUrl = hasMidtrans && response.data.midtrans.redirect_url;
+
+      if (token) {
+        console.log('Midtrans token received, initiating payment...');
+        const clientKey = response.data.midtrans.clientKey || '';
+        const scriptId = 'midtrans-snap-js';
+        const snapUrl = window.location.host.indexOf('localhost') >= 0
+          ? 'https://app.sandbox.midtrans.com/snap/snap.js'
+          : 'https://app.midtrans.com/snap/snap.js';
+
+        const runSnap = () => {
+          console.log('Running Snap with token:', token);
+          if (window.snap && window.snap.pay) {
+            window.snap.pay(token, {
+              onSuccess: function (result) {
+                console.log('Payment success:', result);
+                dispatch(push(`/order/success/${response.data.order._id}`));
+                dispatch(clearCart());
+              },
+              onPending: function (result) {
+                console.log('Payment pending:', result);
+                dispatch(push(`/order/success/${response.data.order._id}`));
+                dispatch(clearCart());
+              },
+              onError: function (err) {
+                console.error('Payment error:', err);
+                dispatch(push(`/order/${response.data.order._id}`));
+              },
+              onClose: function () {
+                console.log('User closed payment widget');
+              }
+            });
+          } else {
+            console.error('window.snap not available');
+            dispatch(push(`/order/${response.data.order._id}`));
+          }
+        };
+
+        let script = document.getElementById(scriptId);
+        if (!script) {
+          console.log('Loading Midtrans Snap script from:', snapUrl);
+          script = document.createElement('script');
+          script.id = scriptId;
+          script.src = snapUrl;
+          script.setAttribute('data-client-key', clientKey);
+          script.onload = () => {
+            console.log('Snap script loaded successfully');
+            runSnap();
+          };
+          script.onerror = () => {
+            console.error('Failed to load Snap script');
+            dispatch(push(`/order/${response.data.order._id}`));
+          };
+          document.body.appendChild(script);
+        } else {
+          console.log('Snap script already loaded, using existing');
+          script.setAttribute('data-client-key', clientKey);
+          runSnap();
+        }
+      } else if (redirectUrl) {
+        console.log('Midtrans redirect_url found, redirecting to Snap page');
+        window.location.href = redirectUrl;
+      } else {
+        console.error('No Midtrans token or redirect_url returned');
+        handleError({ message: 'Payment session unavailable. Please try again.' }, dispatch);
       }
     } catch (error) {
+      console.error('addOrder error:', error);
       handleError(error, dispatch);
     }
   };
@@ -218,14 +297,22 @@ export const addOrder = () => {
 
 export const placeOrder = () => {
   return (dispatch, getState) => {
+    console.log('placeOrder called');
     const token = localStorage.getItem('token');
-
     const cartItems = getState().cart.cartItems;
 
-    if (token && cartItems.length > 0) {
+    console.log('Token exists:', !!token, 'Cart items length:', cartItems?.length);
+
+    if (token && cartItems && cartItems.length > 0) {
+      console.log('Proceeding with order placement, getting cart ID...');
       Promise.all([dispatch(getCartId())]).then(() => {
+        console.log('Cart ID obtained, calling addOrder...');
         dispatch(addOrder());
+      }).catch(err => {
+        console.error('Error getting cart ID:', err);
       });
+    } else {
+      console.warn('Cannot place order - token or cartItems missing');
     }
 
     dispatch(toggleCart());

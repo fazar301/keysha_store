@@ -19,6 +19,13 @@ const taxableSelect = [
   { value: 1, label: 'Yes' },
   { value: 0, label: 'No' }
 ];
+const sizesSelect = [
+  { value: 'XS', label: 'XS' },
+  { value: 'S', label: 'S' },
+  { value: 'M', label: 'M' },
+  { value: 'L', label: 'L' },
+  { value: 'XL', label: 'XL' }
+];
 
 const EditProduct = props => {
   const {
@@ -155,6 +162,19 @@ const EditProduct = props => {
               />
             </Col>
           )}
+          <Col xs='12' md='12'>
+            <SelectOption
+              error={formErrors['sizes']}
+              label={'Sizes (optional)'}
+              multi={true}
+              name={'sizes'}
+              options={sizesSelect}
+              value={product.sizes}
+              handleSelectChange={value => {
+                productChange('sizes', value);
+              }}
+            />
+          </Col>
           <Col xs='12' md='12' className='mt-3 mb-2'>
             <Switch
               id={`enable-product-${product._id}`}

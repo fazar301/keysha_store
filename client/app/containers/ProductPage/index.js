@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom';
 import actions from '../../actions';
 
 import Input from '../../components/Common/Input';
+import SelectOption from '../../components/Common/SelectOption';
 import Button from '../../components/Common/Button';
 import LoadingIndicator from '../../components/Common/LoadingIndicator';
 import NotFound from '../../components/Common/NotFound';
@@ -121,6 +122,21 @@ class ProductPage extends React.PureComponent {
                           productShopChange(name, value);
                         }}
                       />
+
+                      {product.sizes && product.sizes.length > 0 && (
+                        <div className='mt-3'>
+                          <SelectOption
+                            error={shopFormErrors['selectedSize']}
+                            label={'Size'}
+                            multi={false}
+                            options={product.sizes}
+                            value={productShopData.selectedSize}
+                            handleSelectChange={value => {
+                              productShopChange('selectedSize', value);
+                            }}
+                          />
+                        </div>
+                      )}
                     </div>
                     <div className='my-4 item-share'>
                       <SocialShare product={product} />
@@ -147,7 +163,12 @@ class ProductPage extends React.PureComponent {
                           text='Add To Bag'
                           className='bag-btn'
                           icon={<BagIcon />}
-                          onClick={() => handleAddToCart(product)}
+                          onClick={() =>
+                            handleAddToCart({
+                              ...product,
+                              selectedSize: productShopData.selectedSize
+                            })
+                          }
                         />
                       )}
                     </div>

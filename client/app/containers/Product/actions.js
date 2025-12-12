@@ -130,7 +130,12 @@ export const fetchStoreProduct = slug => {
       const response = await axios.get(`${API_URL}/product/item/${slug}`);
 
       const inventory = response.data.product.quantity;
-      const product = { ...response.data.product, inventory };
+      // map sizes (array of strings) to select options for store page
+      const sizesOptions = response.data.product.sizes
+        ? response.data.product.sizes.map(s => ({ value: s, label: s }))
+        : [];
+
+      const product = { ...response.data.product, sizes: sizesOptions, inventory };
 
       dispatch({
         type: FETCH_STORE_PRODUCT,
@@ -199,6 +204,13 @@ export const fetchProduct = id => {
 
       response.data.product.brand = brandData[0];
 
+      // map sizes (array of strings) to select options
+      const sizesOptions = response.data.product.sizes
+        ? response.data.product.sizes.map(s => ({ value: s, label: s }))
+        : [];
+
+      response.data.product.sizes = sizesOptions;
+
       const product = { ...response.data.product, inventory };
 
       dispatch({
@@ -239,6 +251,7 @@ export const addProduct = () => {
         price: product.price,
         quantity: product.quantity,
         image: product.image,
+        sizes: product.sizes ? product.sizes.map(s => s.value) : [],
         isActive: product.isActive,
         taxable: product.taxable.value,
         brand:
@@ -273,10 +286,15 @@ export const addProduct = () => {
           if (newProduct.hasOwnProperty(key)) {
             if (key === 'brand' && newProduct[key] === null) {
               continue;
+            } else if (key === 'sizes') {
+              continue;
             } else {
               formData.set(key, newProduct[key]);
             }
           }
+        }
+        if (newProduct.sizes) {
+          formData.set('sizes', JSON.stringify(newProduct.sizes));
         }
       }
 
@@ -332,7 +350,8 @@ export const updateProduct = () => {
         quantity: product.quantity,
         price: product.price,
         taxable: product.taxable,
-        brand: brand != 0 ? brand : null
+        brand: brand != 0 ? brand : null,
+        sizes: product.sizes ? product.sizes.map(s => s.value) : []
       };
 
       const { isValid, errors } = allFieldsValidation(newProduct, rules, {

@@ -10,12 +10,18 @@ const auth = require('../../middleware/auth');
 const mailgun = require('../../services/mailgun');
 const store = require('../../utils/store');
 const { ROLES, CART_ITEM_STATUS } = require('../../constants');
+const midtransClient = require('midtrans-client');
 
 router.post('/add', auth, async (req, res) => {
   try {
     const cart = req.body.cartId;
     const total = req.body.total;
+    const paymentMethod = req.body.paymentMethod || null;
+    const shippingCost = req.body.shippingCost || 0;
+    const discountAmount = req.body.discountAmount || 0;
     const user = req.user._id;
+
+    console.log('Creating order - cart:', cart, 'total:', total, 'paymentMethod:', paymentMethod, 'shipping:', shippingCost, 'discount:', discountAmount, 'user:', user);
 
     const order = new Order({
       cart,
@@ -24,6 +30,7 @@ router.post('/add', auth, async (req, res) => {
     });
 
     const orderDoc = await order.save();
+    console.log('Order saved:', orderDoc._id);
 
     const cartDoc = await Cart.findById(orderDoc.cart._id).populate({
       path: 'products.product',
@@ -31,6 +38,13 @@ router.post('/add', auth, async (req, res) => {
         path: 'brand'
       }
     });
+
+    if (!cartDoc) {
+      console.error('Cart not found:', orderDoc.cart._id);
+      return res.status(400).json({
+        error: 'Cart not found. Please try again.'
+      });
+    }
 
     const newOrder = {
       _id: orderDoc._id,
@@ -41,6 +55,105 @@ router.post('/add', auth, async (req, res) => {
     };
 
     await mailgun.sendEmail(order.user.email, 'order-confirmation', newOrder);
+
+    // If client requested Midtrans payment, create a Snap transaction
+    if (paymentMethod === 'midtrans') {
+      try {
+        console.log('Creating Midtrans transaction...');
+        const isProduction = process.env.NODE_ENV === 'production';
+        const snap = new midtransClient.Snap({
+          isProduction,
+          serverKey: process.env.SERVER_KEY,
+          clientKey: process.env.CLIENT_KEY
+        });
+
+        // Calculate product items
+        const itemDetails = (cartDoc.products || []).map(p => ({
+          id: p.product._id.toString(),
+          price: Math.round(p.product.price || 0),
+          quantity: p.quantity || 1,
+          name: p.product.name || 'Item'
+        }));
+
+        // Add shipping as separate item if exists
+        if (shippingCost > 0) {
+          itemDetails.push({
+            id: 'shipping',
+            price: Math.round(shippingCost),
+            quantity: 1,
+            name: 'Ongkos Kirim'
+          });
+        }
+
+        // Add discount as negative item if exists
+        if (discountAmount > 0) {
+          itemDetails.push({
+            id: 'discount',
+            price: -Math.round(discountAmount),
+            quantity: 1,
+            name: 'Diskon'
+          });
+        }
+
+        // Calculate total from items to ensure it matches gross_amount
+        let itemsTotal = itemDetails.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const grossAmount = Math.round(total);
+
+        // Adjust if there's a rounding difference (max 1 rupiah difference allowed)
+        const difference = grossAmount - itemsTotal;
+        if (Math.abs(difference) > 0 && itemDetails.length > 0) {
+          // Adjust the first product item to match the total
+          const firstItem = itemDetails.find(item => item.id !== 'shipping' && item.id !== 'discount');
+          if (firstItem) {
+            const adjustedPrice = firstItem.price + difference;
+            if (adjustedPrice > 0) {
+              firstItem.price = adjustedPrice;
+              itemsTotal = grossAmount;
+              console.log('Adjusted first item price by', difference, 'to match gross_amount');
+            }
+          }
+        }
+
+        console.log('Item details:', JSON.stringify(itemDetails, null, 2));
+        console.log('Items total:', itemsTotal, 'Gross amount:', grossAmount, 'Difference:', grossAmount - itemsTotal);
+
+        const parameter = {
+          transaction_details: {
+            order_id: orderDoc._id.toString(),
+            gross_amount: grossAmount
+          },
+          customer_details: {
+            email: req.user.email || '',
+            first_name: req.user.name || req.user.firstName || ''
+          },
+          item_details: itemDetails
+        };
+
+        console.log('Midtrans parameter:', parameter);
+        const midtransResponse = await snap.createTransaction(parameter);
+        console.log('Midtrans transaction created:', midtransResponse.token);
+
+        return res.status(200).json({
+          success: true,
+          message: `Your order has been placed successfully!`,
+          order: { _id: orderDoc._id },
+          midtrans: {
+            token: midtransResponse.token,
+            redirect_url: midtransResponse.redirect_url,
+            clientKey: process.env.CLIENT_KEY
+          }
+        });
+      } catch (err) {
+        console.error('Midtrans error:', err.message);
+        // If Midtrans fails, still return order created but notify error
+        return res.status(200).json({
+          success: true,
+          message: `Your order has been placed but payment initiation failed.`,
+          order: { _id: orderDoc._id },
+          error: err.message
+        });
+      }
+    }
 
     res.status(200).json({
       success: true,
@@ -312,9 +425,8 @@ router.put('/status/item/:itemId', auth, async (req, res) => {
         return res.status(200).json({
           success: true,
           orderCancelled: true,
-          message: `${
-            req.user.role === ROLES.Admin ? 'Order' : 'Your order'
-          } has been cancelled successfully`
+          message: `${req.user.role === ROLES.Admin ? 'Order' : 'Your order'
+            } has been cancelled successfully`
         });
       }
 

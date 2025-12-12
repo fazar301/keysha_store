@@ -141,6 +141,13 @@ export const handleCheckout = () => {
   };
 };
 
+export const goToCheckout = () => {
+  return (dispatch, getState) => {
+    dispatch(toggleCart());
+    dispatch(push('/checkout'));
+  };
+};
+
 // Continue shopping use case
 export const handleShopping = () => {
   return (dispatch, getState) => {

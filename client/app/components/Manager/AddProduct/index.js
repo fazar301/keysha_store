@@ -18,6 +18,13 @@ const taxableSelect = [
   { value: 1, label: 'Yes' },
   { value: 0, label: 'No' }
 ];
+const sizesSelect = [
+  { value: 'XS', label: 'XS' },
+  { value: 'S', label: 'S' },
+  { value: 'M', label: 'M' },
+  { value: 'L', label: 'L' },
+  { value: 'XL', label: 'XL' }
+];
 
 const AddProduct = props => {
   const {
@@ -143,6 +150,19 @@ const AddProduct = props => {
               value={image}
               onInputChange={(name, value) => {
                 productChange(name, value);
+              }}
+            />
+          </Col>
+          <Col xs='12' md='12'>
+            <SelectOption
+              error={formErrors['sizes']}
+              label={'Sizes (optional)'}
+              multi={true}
+              name={'sizes'}
+              options={sizesSelect}
+              value={productFormData.sizes}
+              handleSelectChange={value => {
+                productChange('sizes', value);
               }}
             />
           </Col>

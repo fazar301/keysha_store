@@ -40,6 +40,7 @@ const initialState = {
     quantity: 1,
     price: 1,
     image: {},
+      sizes: [],
     isActive: true,
     taxable: { value: 0, label: 'No' },
     brand: {
@@ -49,7 +50,8 @@ const initialState = {
   },
   isLoading: false,
   productShopData: {
-    quantity: 1
+    quantity: 1,
+    selectedSize: null
   },
   formErrors: {},
   editFormErrors: {},
@@ -166,6 +168,7 @@ const productReducer = (state = initialState, action) => {
           quantity: 1,
           price: 1,
           image: {},
+          sizes: [],
           isActive: true,
           taxable: { value: 0, label: 'No' },
           brand: {
@@ -182,7 +185,8 @@ const productReducer = (state = initialState, action) => {
       return {
         ...state,
         productShopData: {
-          quantity: 1
+            quantity: 1,
+            selectedSize: null
         },
         shopFormErrors: {}
       };
