@@ -26,21 +26,28 @@ class Checkout extends React.PureComponent {
         cityName: '',
         provinceId: '',
         provinceName: '',
+        districtId: '',
+        districtName: '',
         postalCode: ''
       },
       // Data untuk dropdown
       provinces: [],
       cities: [],
+      districts: [],
       selectedProvince: null,
       selectedCity: null,
+      selectedDistrict: null,
       // Shipping options dari API
       shippingOptions: [],
       shipping: null,
+      shippingError: null,
       loadingProvinces: false,
       loadingCities: false,
+      loadingDistricts: false,
       loadingShipping: false,
-      // Kota asal (default bisa diset di env atau config)
-      originCityId: process.env.ORIGIN_CITY_ID || '151', // Default: Jakarta Selatan
+      // District asal (default bisa diset di env atau config)
+      // Note: API baru menggunakan district ID, bukan city ID
+      originDistrictId: process.env.ORIGIN_DISTRICT_ID || '1391', // Default district ID
       promo: { code: '', applied: false, discount: 0, message: '' }
     };
   }
@@ -76,13 +83,17 @@ class Checkout extends React.PureComponent {
     this.setState({
       selectedProvince: selectedOption,
       selectedCity: null,
+      selectedDistrict: null,
       cities: [],
+      districts: [],
       address: {
         ...this.state.address,
         provinceId: selectedOption ? selectedOption.value : '',
         provinceName: selectedOption ? selectedOption.label : '',
         cityId: '',
-        cityName: ''
+        cityName: '',
+        districtId: '',
+        districtName: ''
       }
     });
 
@@ -116,103 +127,221 @@ class Checkout extends React.PureComponent {
   handleCityChange = async (selectedOption) => {
     this.setState({
       selectedCity: selectedOption,
+      selectedDistrict: null,
+      districts: [],
       address: {
         ...this.state.address,
         cityId: selectedOption ? selectedOption.value : '',
-        cityName: selectedOption ? selectedOption.label : ''
+        cityName: selectedOption ? selectedOption.label : '',
+        districtId: '',
+        districtName: ''
       }
     });
 
-    // Jika kota dipilih dan sudah di step 2, fetch shipping cost
-    if (selectedOption && this.state.step >= 2) {
+    // Fetch districts jika kota dipilih
+    if (selectedOption) {
+      this.fetchDistricts(selectedOption.value);
+
+      // Jika sudah di step 2, fetch shipping cost
+      if (this.state.step >= 2) {
+        this.fetchShippingCost(selectedOption.value);
+      }
+    }
+  };
+
+  // Fetch district berdasarkan kota
+  fetchDistricts = async (cityId) => {
+    this.setState({ loadingDistricts: true });
+    try {
+      const response = await axios.get(`${API_URL}/shipping/districts`, {
+        params: { city: cityId }
+      });
+      if (response.data.success) {
+        const districts = response.data.districts.map(d => ({
+          value: d.district_id,
+          label: d.district_name,
+          zip_code: d.zip_code
+        }));
+        this.setState({ districts, loadingDistricts: false });
+      }
+    } catch (error) {
+      console.error('Error fetching districts:', error);
+      this.setState({ loadingDistricts: false });
+    }
+  };
+
+  // Handle perubahan district
+  handleDistrictChange = async (selectedOption) => {
+    this.setState({
+      selectedDistrict: selectedOption,
+      address: {
+        ...this.state.address,
+        districtId: selectedOption ? selectedOption.value : '',
+        districtName: selectedOption ? selectedOption.label : '',
+        postalCode: selectedOption && selectedOption.zip_code ? selectedOption.zip_code : this.state.address.postalCode
+      }
+    });
+
+    // Jika district dipilih dan sudah di step 2, fetch shipping cost
+    if (selectedOption && this.state.step === 2) {
+      console.log('District changed in step 2, fetching shipping cost:', selectedOption.value);
       this.fetchShippingCost(selectedOption.value);
     }
   };
 
   // Fetch biaya ongkos kirim
-  fetchShippingCost = async (destinationCityId) => {
-    const { originCityId } = this.state;
+  fetchShippingCost = async (destinationDistrictId) => {
+    const { originDistrictId, address } = this.state;
     const { cartItems } = this.props;
+
+    // Gunakan district ID dari address jika tersedia, jika tidak gunakan destinationDistrictId
+    const finalDestination = address.districtId || destinationDistrictId;
+
+    // Validasi: pastikan origin dan destination district ID ada
+    if (!originDistrictId) {
+      console.error('Origin district ID missing. Please set ORIGIN_DISTRICT_ID in environment variable.');
+      this.setState({
+        shippingOptions: [],
+        loadingShipping: false,
+        shippingError: 'Origin district belum dikonfigurasi. Silakan hubungi administrator.'
+      });
+      return;
+    }
+
+    if (!finalDestination) {
+      console.error('Destination district ID missing:', { finalDestination, addressDistrictId: address.districtId, destinationDistrictId });
+      this.setState({
+        shippingOptions: [],
+        loadingShipping: false,
+        shippingError: 'Silakan pilih kecamatan (district) terlebih dahulu.'
+      });
+      return;
+    }
 
     // Hitung berat dari cart items (default 1000 gram per item jika tidak ada berat)
     const weight = cartItems.reduce((total, item) => {
       return total + (item.quantity * 1000); // 1000 gram per item
     }, 0);
 
-    this.setState({ loadingShipping: true, shippingOptions: [] });
+    // Minimum weight 1 gram
+    const finalWeight = Math.max(weight, 1);
+
+    console.log('Fetching shipping cost:', {
+      origin: originDistrictId,
+      destination: finalDestination,
+      weight: finalWeight
+    });
+
+    this.setState({ loadingShipping: true, shippingOptions: [], shippingError: null });
 
     try {
-      // Cek semua kurir yang umum digunakan
-      const couriers = ['jne', 'pos', 'tiki'];
-      const allShippingOptions = [];
+      // API baru mendukung multiple courier sekaligus
+      // Format: jne:pos:tiki:sicepat:jnt:ninja:lion:anteraja:rex:rpx:sentral:star:wahana:dse
+      const couriers = 'jne:pos:tiki:sicepat:jnt:ninja:lion:anteraja';
 
-      for (const courier of couriers) {
-        try {
-          const response = await axios.post(`${API_URL}/shipping/cost`, {
-            origin: originCityId,
-            destination: destinationCityId,
-            weight: weight,
-            courier: courier
-          });
+      const response = await axios.post(`${API_URL}/shipping/cost`, {
+        origin: originDistrictId,
+        destination: finalDestination,
+        weight: finalWeight,
+        courier: couriers,
+        price: 'lowest'
+      });
 
-          if (response.data.success && response.data.results) {
-            response.data.results.forEach(result => {
-              if (result.costs && result.costs.length > 0) {
-                result.costs.forEach(service => {
-                  service.cost.forEach(cost => {
-                    allShippingOptions.push({
-                      id: `${result.code}_${service.service}`,
-                      courier: result.name,
-                      service: service.service,
-                      description: service.description,
-                      price: cost.value,
-                      etd: cost.etd,
-                      note: cost.note
-                    });
-                  });
+      console.log('Shipping cost response:', response.data);
+
+      if (response.data.success && response.data.results) {
+        const allShippingOptions = [];
+
+        response.data.results.forEach(result => {
+          if (result.costs && result.costs.length > 0) {
+            result.costs.forEach(service => {
+              service.cost.forEach(cost => {
+                allShippingOptions.push({
+                  id: `${result.code}_${service.service}`,
+                  courier: result.name,
+                  service: service.service,
+                  description: service.description,
+                  price: cost.value,
+                  etd: cost.etd,
+                  note: cost.note
                 });
-              }
+              });
             });
           }
-        } catch (err) {
-          console.error(`Error fetching ${courier} shipping cost:`, err);
-        }
+        });
+
+        // Sort by price (sudah di-sort dari API dengan price=lowest)
+        allShippingOptions.sort((a, b) => a.price - b.price);
+
+        console.log('Shipping options found:', allShippingOptions.length);
+
+        this.setState({
+          shippingOptions: allShippingOptions,
+          loadingShipping: false,
+          shippingError: allShippingOptions.length === 0 ? 'Tidak ada opsi pengiriman tersedia untuk rute ini.' : null
+        });
+      } else {
+        const errorMsg = response.data.error || 'Tidak ada opsi pengiriman tersedia.';
+        console.error('Shipping cost API error:', errorMsg);
+        this.setState({
+          shippingOptions: [],
+          loadingShipping: false,
+          shippingError: errorMsg
+        });
       }
-
-      // Sort by price
-      allShippingOptions.sort((a, b) => a.price - b.price);
-
-      this.setState({
-        shippingOptions: allShippingOptions,
-        loadingShipping: false
-      });
     } catch (error) {
       console.error('Error fetching shipping cost:', error);
-      this.setState({ loadingShipping: false });
+      const errorMsg = error.response?.data?.error || error.message || 'Gagal mengambil data pengiriman. Silakan coba lagi.';
+      this.setState({
+        shippingOptions: [],
+        loadingShipping: false,
+        shippingError: errorMsg
+      });
     }
   };
 
   validateAddress = () => {
     const { address } = this.state;
-    const required = ['fullName', 'email', 'phone', 'addressLine', 'cityId', 'provinceId', 'postalCode'];
+    // District sekarang wajib untuk API baru
+    const required = ['fullName', 'email', 'phone', 'addressLine', 'cityId', 'provinceId', 'districtId', 'postalCode'];
     for (const k of required) {
-      if (!address[k]) return false;
+      if (!address[k]) {
+        console.warn('Missing required field:', k);
+        return false;
+      }
     }
     return true;
   };
 
   nextStep = () => {
     const { step, address } = this.state;
+
     if (step === 1) {
-      if (!this.validateAddress()) return this.setState({ addressError: 'Please complete the address form.' });
-    }
-    if (step === 2) {
-      // Jika pindah ke step 2, fetch shipping cost jika kota sudah dipilih
-      if (address.cityId) {
-        this.fetchShippingCost(address.cityId);
+      // Validasi form alamat
+      if (!this.validateAddress()) {
+        return this.setState({ addressError: 'Please complete the address form.' });
       }
+
+      // Validasi district ID wajib untuk API baru
+      if (!address.districtId) {
+        return this.setState({
+          addressError: 'Silakan pilih kecamatan (district) terlebih dahulu. District ID diperlukan untuk menghitung biaya pengiriman.'
+        });
+      }
+
+      // Pindah ke step 2 dan fetch shipping cost
+      this.setState({ step: step + 1, addressError: '' }, () => {
+        // Callback setelah state update - fetch shipping cost
+        console.log('Moving to step 2, fetching shipping cost for district:', address.districtId);
+        this.fetchShippingCost(address.districtId);
+      });
+    } else if (step === 2) {
+      // Pindah ke step 3 (promo code)
+      this.setState({ step: step + 1, addressError: '' });
+    } else {
+      // Step lainnya
+      this.setState({ step: step + 1, addressError: '' });
     }
-    this.setState({ step: step + 1, addressError: '' });
   };
 
   prevStep = () => {
@@ -291,7 +420,14 @@ class Checkout extends React.PureComponent {
               {step === 1 && (
                 <div>
                   <h3>Alamat Pengiriman</h3>
-                  {addressError && <p className='text-danger'>{addressError}</p>}
+                  {addressError && (
+                    <div className='alert alert-danger'>
+                      <strong>Error:</strong> {addressError}
+                    </div>
+                  )}
+                  <div className='alert alert-info mb-3'>
+                    <small><strong>Catatan:</strong> Semua field wajib diisi, termasuk Kecamatan (District) untuk menghitung biaya pengiriman.</small>
+                  </div>
                   <Row>
                     <Col md='6'><Input label='Nama Lengkap' name='fullName' value={address.fullName} onInputChange={this.handleAddressChange} /></Col>
                     <Col md='6'><Input label='Alamat Email' name='email' value={address.email} onInputChange={this.handleAddressChange} /></Col>
@@ -316,6 +452,18 @@ class Checkout extends React.PureComponent {
                         disabled={this.state.loadingCities || !this.state.selectedProvince}
                       />
                     </Col>
+                    <Col md='6'>
+                      <SelectOption
+                        label='Kecamatan (Wajib)'
+                        options={this.state.districts}
+                        value={this.state.selectedDistrict}
+                        handleSelectChange={this.handleDistrictChange}
+                        disabled={this.state.loadingDistricts || !this.state.selectedCity}
+                      />
+                      {!this.state.selectedCity && (
+                        <small className='text-muted'>Pilih kota terlebih dahulu</small>
+                      )}
+                    </Col>
                     <Col md='12'><Input label='Kode POS' name='postalCode' value={address.postalCode} onInputChange={this.handleAddressChange} /></Col>
                   </Row>
                 </div>
@@ -324,14 +472,30 @@ class Checkout extends React.PureComponent {
               {step === 2 && (
                 <div>
                   <h3>Metode Pengiriman</h3>
-                  {!this.state.address.cityId && (
-                    <p className='text-warning'>Silakan pilih kota tujuan di langkah sebelumnya untuk melihat opsi pengiriman.</p>
+                  {!this.state.address.districtId && (
+                    <div className='alert alert-warning'>
+                      <strong>Perhatian:</strong> Silakan pilih kecamatan (district) di langkah sebelumnya untuk melihat opsi pengiriman. API baru memerlukan district ID untuk menghitung biaya pengiriman.
+                    </div>
                   )}
                   {this.state.loadingShipping && (
-                    <p className='text-info'>Memuat opsi pengiriman...</p>
+                    <div className='alert alert-info'>
+                      <strong>Memuat...</strong> Sedang mengambil opsi pengiriman...
+                    </div>
                   )}
-                  {this.state.shippingOptions.length === 0 && this.state.address.cityId && !this.state.loadingShipping && (
-                    <p className='text-danger'>Tidak ada opsi pengiriman tersedia. Silakan coba lagi.</p>
+                  {this.state.shippingError && (
+                    <div className='alert alert-danger'>
+                      <strong>Error:</strong> {this.state.shippingError}
+                      {!this.state.originDistrictId && (
+                        <div className='mt-2'>
+                          <small>Origin district belum dikonfigurasi. Silakan set ORIGIN_DISTRICT_ID di environment variable server.</small>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {this.state.shippingOptions.length === 0 && this.state.address.districtId && !this.state.loadingShipping && !this.state.shippingError && (
+                    <div className='alert alert-warning'>
+                      <strong>Info:</strong> Tidak ada opsi pengiriman tersedia untuk rute ini. Pastikan district asal dan tujuan sudah benar.
+                    </div>
                   )}
                   <div className='shipping-options'>
                     {this.state.shippingOptions.map((option) => (

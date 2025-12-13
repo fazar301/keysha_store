@@ -92,88 +92,40 @@ router.get('/cities', async (req, res) => {
 });
 
 /**
- * POST /api/shipping/cost
- * Menghitung biaya ongkos kirim
- * Body: { origin, destination, weight, courier }
- * Note: Auth tidak wajib untuk endpoint ini, tapi disarankan untuk rate limiting
+ * GET /api/shipping/districts
+ * Mendapatkan daftar district (kecamatan)
+ * Query params: city (required) - ID kota untuk filter district
  */
-router.post('/cost', async (req, res) => {
+router.get('/districts', async (req, res) => {
     try {
-        const { origin, destination, weight, courier = 'jne' } = req.body;
+        const { city } = req.query;
 
-        // Validasi input
-        if (!origin || !destination || !weight) {
+        if (!city) {
             return res.status(400).json({
                 success: false,
-                error: 'Origin, destination, and weight are required'
+                error: 'City ID is required'
             });
         }
 
-        // Jika weight tidak diberikan, gunakan default 1000 gram (1 kg)
-        let finalWeight = weight || 1000;
-
-        const result = await rajaOngkir.getShippingCost(
-            origin,
-            destination,
-            finalWeight,
-            courier
-        );
+        const result = await rajaOngkir.getDistricts(city);
 
         if (result.success) {
-            // API Komerce mungkin memiliki struktur response yang berbeda
-            // Cek apakah data adalah array atau object
-            let shippingData = result.data;
+            // API Komerce mengembalikan format: { id, name, zip_code }
+            // Convert ke format yang diharapkan frontend: { district_id, district_name, city_id, zip_code }
+            const districtsData = Array.isArray(result.data)
+                ? result.data
+                : (result.data?.districts || result.data?.data || []);
 
-            // Jika data adalah object dengan property results atau costs
-            if (!Array.isArray(shippingData)) {
-                shippingData = shippingData.results || shippingData.costs || shippingData.data || [shippingData];
-            }
-
-            // Format response untuk memudahkan penggunaan di frontend
-            const formattedResults = shippingData.map(cost => {
-                // Handle berbagai format response dari API Komerce
-                if (cost.costs && Array.isArray(cost.costs)) {
-                    // Format dengan costs array
-                    return {
-                        code: cost.code || cost.courier_code,
-                        name: cost.name || cost.courier_name,
-                        costs: cost.costs.map(service => ({
-                            service: service.service || service.service_name,
-                            description: service.description || service.service_type,
-                            cost: Array.isArray(service.cost) ? service.cost.map(c => ({
-                                value: c.value || c.price,
-                                etd: c.etd || c.estimated_days,
-                                note: c.note || ''
-                            })) : [{
-                                value: service.cost?.value || service.cost?.price || service.price,
-                                etd: service.cost?.etd || service.estimated_days || '',
-                                note: service.cost?.note || ''
-                            }]
-                        }))
-                    };
-                } else {
-                    // Format baru API Komerce (flat structure)
-                    return {
-                        code: cost.courier_code || cost.code,
-                        name: cost.courier_name || cost.name,
-                        costs: [{
-                            service: cost.service_name || cost.service,
-                            description: cost.service_type || cost.description,
-                            cost: [{
-                                value: cost.price || cost.cost || cost.value,
-                                etd: cost.estimated_days || cost.etd || '',
-                                note: cost.note || ''
-                            }]
-                        }]
-                    };
-                }
-            });
+            const districts = districtsData.map(d => ({
+                district_id: d.id?.toString() || d.district_id?.toString(),
+                district_name: d.name || d.district_name,
+                city_id: city, // Gunakan city ID dari query
+                zip_code: d.zip_code || ''
+            }));
 
             res.status(200).json({
                 success: true,
-                origin: result.data?.origin || result.data?.origin_details || {},
-                destination: result.data?.destination || result.data?.destination_details || {},
-                results: formattedResults
+                districts: districts
             });
         } else {
             res.status(400).json({
@@ -182,10 +134,115 @@ router.post('/cost', async (req, res) => {
             });
         }
     } catch (error) {
-        console.error('Shipping cost calculation error:', error);
+        console.error('Error fetching districts:', error);
         res.status(500).json({
             success: false,
-            error: 'Failed to calculate shipping cost'
+            error: 'Failed to fetch districts'
+        });
+    }
+});
+
+/**
+ * POST /api/shipping/cost
+ * Menghitung biaya ongkos kirim berdasarkan district
+ * Body: { origin, destination, weight, courier, price }
+ * Note: origin dan destination adalah district ID, bukan city ID
+ */
+router.post('/cost', async (req, res) => {
+    try {
+        req.body.origin = 979;
+        const { origin, destination, weight, courier = 'jne:pos:tiki', price = 'lowest' } = req.body;
+        console.log('Shipping cost request:', { origin, destination, weight, courier, price });
+
+        // Validasi input
+        if (!origin || !destination || !weight) {
+            console.error('Missing required parameters:', { origin, destination, weight });
+            return res.status(400).json({
+                success: false,
+                error: 'Origin (district), destination (district), and weight are required'
+            });
+        }
+
+        // Jika weight tidak diberikan, gunakan default 1000 gram (1 kg)
+        let finalWeight = weight || 1000;
+        // Minimum weight 1 gram
+        finalWeight = Math.max(finalWeight, 1);
+
+        const result = await rajaOngkir.getShippingCost(
+            origin,
+            destination,
+            finalWeight,
+            courier,
+            price
+        );
+
+        console.log('RajaOngkir API result:', {
+            success: result.success,
+            dataLength: Array.isArray(result.data) ? result.data.length : 0,
+            error: result.error
+        });
+
+        if (result.success) {
+            // API Komerce mengembalikan array langsung dengan format:
+            // { name, code, service, description, cost, etd }
+            const shippingData = Array.isArray(result.data) ? result.data : [];
+
+            if (shippingData.length === 0) {
+                console.warn('No shipping data returned from API');
+                return res.status(200).json({
+                    success: true,
+                    results: [],
+                    message: 'Tidak ada opsi pengiriman tersedia untuk rute ini'
+                });
+            }
+
+            // Format response untuk memudahkan penggunaan di frontend
+            // Group by courier untuk kompatibilitas dengan format lama
+            const groupedByCourier = {};
+
+            shippingData.forEach(item => {
+                const courierCode = item.code || 'unknown';
+                if (!groupedByCourier[courierCode]) {
+                    groupedByCourier[courierCode] = {
+                        code: courierCode,
+                        name: item.name || '',
+                        costs: []
+                    };
+                }
+
+                groupedByCourier[courierCode].costs.push({
+                    service: item.service || '',
+                    description: item.description || '',
+                    cost: [{
+                        value: item.cost || 0,
+                        etd: item.etd || '',
+                        note: ''
+                    }]
+                });
+            });
+
+            // Convert ke array
+            const formattedResults = Object.values(groupedByCourier);
+
+            console.log('Formatted results:', formattedResults.length, 'couriers');
+
+            res.status(200).json({
+                success: true,
+                results: formattedResults
+            });
+        } else {
+            console.error('RajaOngkir API error:', result.error);
+            res.status(400).json({
+                success: false,
+                error: result.error || 'Gagal menghitung biaya pengiriman'
+            });
+        }
+    } catch (error) {
+        console.error('Shipping cost calculation error:', error);
+        console.error('Error details:', error.response?.data || error.message);
+        res.status(500).json({
+            success: false,
+            error: error.response?.data?.error || error.message || 'Failed to calculate shipping cost'
         });
     }
 });

@@ -27,15 +27,72 @@ RAJAONGKIR_BASE_URL=https://rajaongkir.komerce.id
 - **Base URL baru**: `https://rajaongkir.komerce.id`
 - API Key harus didapatkan dari dashboard [collaborator.komerce.id](https://collaborator.komerce.id)
 
-## Kota Asal (Origin City)
+## District Asal (Origin District)
 
-Default kota asal diset ke Jakarta Selatan (ID: 151). Anda dapat mengubahnya dengan menambahkan environment variable:
+**Penting**: API baru menggunakan **district ID**, bukan city ID untuk menghitung shipping cost.
+
+Default district asal harus diset. Anda dapat mengubahnya dengan menambahkan environment variable:
 
 ```env
-ORIGIN_CITY_ID=151
+ORIGIN_DISTRICT_ID=your_district_id_here
 ```
 
-Untuk mendapatkan ID kota, gunakan endpoint `/api/shipping/cities` atau lihat dokumentasi RajaOngkir.
+### Cara Mencari District ID
+
+Untuk mendapatkan ID district, ikuti langkah berikut:
+
+#### Contoh: Mencari District ID untuk "Kec. Johan Pahlawan, Kabupaten Aceh Barat, Aceh"
+
+1. **Cari Provinsi Aceh:**
+   ```bash
+   GET /api/shipping/provinces
+   ```
+   Cari provinsi dengan nama "NANGGROE ACEH DARUSSALAM (NAD)" atau "ACEH", catat `province_id`-nya (misalnya: `10`)
+
+2. **Cari Kota/Kabupaten Aceh Barat:**
+   ```bash
+   GET /api/shipping/cities?province=10
+   ```
+   Cari kota dengan nama "ACEH BARAT" atau "KABUPATEN ACEH BARAT", catat `city_id`-nya
+
+3. **Cari District Johan Pahlawan:**
+   ```bash
+   GET /api/shipping/districts?city={city_id}
+   ```
+   Cari district dengan nama "JOHAN PAHLAWAN" atau "JOHAN PAHLAWAN", catat `district_id`-nya
+
+4. **Set di Environment Variable:**
+   ```env
+   ORIGIN_DISTRICT_ID={district_id_yang_didapat}
+   ```
+
+#### Menggunakan cURL untuk Testing
+
+```bash
+# 1. Get Provinces
+curl --location 'https://rajaongkir.komerce.id/api/v1/destination/province' \
+--header 'Key: YOUR_API_KEY'
+
+# 2. Get Cities (ganti {province_id} dengan ID provinsi Aceh)
+curl --location 'https://rajaongkir.komerce.id/api/v1/destination/city/{province_id}' \
+--header 'Key: YOUR_API_KEY'
+
+# 3. Get Districts (ganti {city_id} dengan ID kota Aceh Barat)
+curl --location 'https://rajaongkir.komerce.id/api/v1/destination/district/{city_id}' \
+--header 'Key: YOUR_API_KEY'
+```
+
+### Lokasi Default yang Disarankan
+
+Untuk lokasi **"Kec. Johan Pahlawan, Kabupaten Aceh Barat, Aceh"**:
+1. Provinsi: Aceh (NANGGROE ACEH DARUSSALAM)
+2. Kota/Kabupaten: Aceh Barat
+3. District: Johan Pahlawan
+
+Setelah mendapatkan district ID, tambahkan ke `.env`:
+```env
+ORIGIN_DISTRICT_ID={district_id_johan_pahlawan}
+```
 
 ## API Endpoints
 
@@ -90,53 +147,89 @@ Mendapatkan daftar kota berdasarkan provinsi.
 - Endpoint menggunakan path parameter `{province_id}`, bukan query parameter
 - Field `type` tidak tersedia di response API Komerce untuk endpoint city
 
-### 3. POST /api/shipping/cost
-Menghitung biaya ongkos kirim.
+### 3. GET /api/shipping/districts
+Mendapatkan daftar district (kecamatan) berdasarkan kota.
 
-**Endpoint API Komerce**: `/api/v1/shipping-cost`
+**Endpoint API Komerce**: `/api/v1/destination/district/{city_id}` (menggunakan path parameter)
 
-**Request Body:**
-```json
-{
-  "origin": "151",           // ID kota asal (akan dikonversi ke origin_city_id)
-  "destination": "1",        // ID kota tujuan (akan dikonversi ke destination_city_id)
-  "weight": 1000,            // Berat dalam gram
-  "courier": "jne"           // Kode kurir (jne, pos, tiki, dll)
-}
-```
-
-**Note**: Endpoint internal menggunakan `origin_city_id` dan `destination_city_id`, tapi endpoint kita tetap menggunakan `origin` dan `destination` untuk kompatibilitas.
+**Query Parameters:**
+- `city` (required): ID kota untuk filter district
 
 **Response:**
 ```json
 {
   "success": true,
-  "origin": {
-    "city_id": "151",
-    "province_id": "6",
-    "province": "DKI Jakarta",
-    "type": "Kota",
-    "city_name": "Jakarta Selatan"
-  },
-  "destination": {
-    "city_id": "1",
-    "province_id": "1",
-    "province": "Bali",
-    "type": "Kabupaten",
-    "city_name": "Badung"
-  },
+  "districts": [
+    {
+      "district_id": "1360",
+      "district_name": "JAKARTA SELATAN",
+      "city_id": "575",
+      "zip_code": "0"
+    },
+    ...
+  ]
+}
+```
+
+**Note**: 
+- API Komerce mengembalikan format `{ id, name, zip_code }` yang kemudian dikonversi ke format di atas
+- Endpoint menggunakan path parameter `{city_id}`, bukan query parameter
+- Zip code dari district dapat digunakan untuk mengisi kode pos secara otomatis
+
+### 4. POST /api/shipping/cost
+Menghitung biaya ongkos kirim berdasarkan district.
+
+**Endpoint API Komerce**: `/api/v1/calculate/district/domestic-cost`
+
+**Request Body:**
+```json
+{
+  "origin": "1391",          // ID district asal (bukan city ID)
+  "destination": "1376",     // ID district tujuan (bukan city ID)
+  "weight": 1000,            // Berat dalam gram
+  "courier": "jne:pos:tiki", // Kode kurir (bisa multiple dengan format jne:pos:tiki atau single)
+  "price": "lowest"          // Sort by price: "lowest" atau "highest" (optional, default: "lowest")
+}
+```
+
+**Note**: 
+- **Penting**: Endpoint baru menggunakan **district ID**, bukan city ID
+- Courier bisa multiple dengan format `jne:pos:tiki:sicepat:jnt` dll
+- Response langsung berupa array, bukan nested structure
+
+**Response:**
+```json
+{
+  "success": true,
   "results": [
     {
       "code": "jne",
       "name": "Jalur Nugraha Ekakurir (JNE)",
       "costs": [
         {
-          "service": "OKE",
-          "description": "Ongkos Kirim Ekonomis",
+          "service": "CTC",
+          "description": "JNE City Courier",
           "cost": [
             {
-              "value": 18000,
-              "etd": "2-3",
+              "value": 10000,
+              "etd": "1 day",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "pos",
+      "name": "POS Indonesia (POS)",
+      "costs": [
+        {
+          "service": "Pos Reguler",
+          "description": "240",
+          "cost": [
+            {
+              "value": 8000,
+              "etd": "2 day",
               "note": ""
             }
           ]
@@ -146,6 +239,11 @@ Menghitung biaya ongkos kirim.
   ]
 }
 ```
+
+**Note**: 
+- Response format baru: langsung array di `data`, kemudian di-group by courier
+- Setiap item memiliki: `name`, `code`, `service`, `description`, `cost`, `etd`
+- API mengembalikan semua courier sekaligus jika menggunakan format multiple courier
 
 ## Kurir yang Didukung
 
@@ -158,8 +256,16 @@ Berdasarkan paket RajaOngkir:
 ## Cara Kerja di Frontend
 
 1. User memilih provinsi → sistem memuat daftar kota di provinsi tersebut
-2. User memilih kota → sistem menghitung biaya ongkos kirim untuk semua kurir
-3. User memilih metode pengiriman → biaya ditambahkan ke total order
+2. User memilih kota → sistem memuat daftar district (kecamatan) di kota tersebut
+3. User memilih district → kode pos dapat terisi otomatis dari zip_code district
+4. User pindah ke step 2 → sistem menghitung biaya ongkos kirim berdasarkan **district ID** (bukan city ID)
+5. Sistem menampilkan semua opsi pengiriman dari berbagai kurir
+6. User memilih metode pengiriman → biaya ditambahkan ke total order
+
+**Penting**: 
+- API baru **wajib menggunakan district ID** untuk menghitung shipping cost
+- Jika district belum dipilih, shipping cost tidak dapat dihitung
+- Origin district ID harus diset di environment variable `ORIGIN_DISTRICT_ID`
 
 ## Troubleshooting
 

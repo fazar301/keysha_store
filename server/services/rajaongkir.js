@@ -126,22 +126,99 @@ class RajaOngkirService {
     }
 
     /**
-     * Menghitung biaya ongkos kirim
-     * API Komerce endpoint: /api/v1/shipping-cost
-     * @param {Number} origin - ID kota asal
-     * @param {Number} destination - ID kota tujuan
-     * @param {Number} weight - Berat dalam gram
-     * @param {String} courier - Kode kurir (jne, pos, tiki, dll)
+     * Mendapatkan daftar district (kecamatan) berdasarkan kota
+     * API Komerce endpoint: /api/v1/destination/district/{city_id}
+     * Menggunakan path parameter
      */
-    async getShippingCost(origin, destination, weight, courier = 'jne') {
-        const data = {
-            origin_city_id: origin.toString(),
-            destination_city_id: destination.toString(),
-            weight: weight.toString(),
-            courier: courier.toLowerCase()
-        };
+    async getDistricts(cityId = null) {
+        if (!cityId) {
+            return {
+                success: false,
+                error: 'City ID is required'
+            };
+        }
+        const endpoint = `/api/v1/destination/district/${cityId}`;
+        return await this.makeRequest(endpoint);
+    }
 
-        return await this.makeRequest(`/api/v1/destination/district/${origin}`, 'POST', data);
+    /**
+     * Menghitung biaya ongkos kirim berdasarkan district
+     * API Komerce endpoint: /api/v1/calculate/district/domestic-cost
+     * @param {Number} origin - ID district asal
+     * @param {Number} destination - ID district tujuan
+     * @param {Number} weight - Berat dalam gram
+     * @param {String} courier - Kode kurir (bisa multiple dengan format jne:pos:tiki atau single)
+     * @param {String} price - Sort by price (lowest/highest), default: lowest
+     */
+    async getShippingCost(origin, destination, weight, courier = 'jne:pos:tiki', price = 'lowest') {
+        // Endpoint baru menggunakan form-urlencoded
+        const endpoint = '/api/v1/calculate/district/domestic-cost';
+        try {
+            const config = {
+                method: 'POST',
+                url: `${this.baseURL}${endpoint}`,
+                headers: {
+                    'Key': this.apiKey,
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                data: new URLSearchParams({
+                    origin: origin.toString(),
+                    destination: destination.toString(),
+                    weight: weight.toString(),
+                    courier: courier.toLowerCase(),
+                    price: price
+                }).toString()
+            };
+
+            const response = await axios(config);
+
+            // API Komerce menggunakan format response dengan meta dan data
+            if (response.data) {
+                if (response.data.meta) {
+                    const meta = response.data.meta;
+
+                    if (meta.status === 'success' && meta.code === 200) {
+                        return {
+                            success: true,
+                            data: response.data.data || []
+                        };
+                    } else {
+                        return {
+                            success: false,
+                            error: meta.message || 'API request failed'
+                        };
+                    }
+                }
+
+                // Fallback untuk format lain
+                if (response.data.success === false || response.data.code === 410) {
+                    return {
+                        success: false,
+                        error: response.data.message || response.data.error || 'API endpoint tidak aktif'
+                    };
+                }
+
+                return {
+                    success: true,
+                    data: response.data.data || response.data.results || response.data
+                };
+            }
+
+            return {
+                success: false,
+                error: 'No data received from API'
+            };
+        } catch (error) {
+            console.error('RajaOngkir Shipping Cost API Error:', error.response?.data || error.message);
+            const errorMessage = error.response?.data?.message ||
+                error.response?.data?.error ||
+                error.message ||
+                'Failed to connect to RajaOngkir API';
+            return {
+                success: false,
+                error: errorMessage
+            };
+        }
     }
 }
 
