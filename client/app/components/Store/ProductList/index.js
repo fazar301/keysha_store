@@ -9,9 +9,16 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 import AddToWishList from '../AddToWishList';
+import { formatIDR } from '../../../utils';
 
 const ProductList = props => {
   const { products, updateWishlist, authenticated } = props;
+
+  // Helper function to remove "Faith Industries" from product name
+  const cleanProductName = (name) => {
+    if (!name) return '';
+    return name.replace(/^Faith Industries\s*["']?/i, '').replace(/^["']/, '').trim();
+  };
 
   return (
     <div className='product-list'>
@@ -38,17 +45,16 @@ const ProductList = props => {
                     <div className='item-image-box'>
                       <img
                         className='item-image'
-                        src={`${
-                          product.imageUrl
-                            ? product.imageUrl
-                            : '/images/placeholder-image.png'
-                        }`}
+                        src={`${product.imageUrl
+                          ? product.imageUrl
+                          : '/images/placeholder-image.png'
+                          }`}
                       />
                     </div>
                   </div>
                   <div className='item-body'>
                     <div className='item-details p-3'>
-                      <h1 className='item-name'>{product.name}</h1>
+                      <h1 className='item-name'>{cleanProductName(product.name)}</h1>
                       {product.brand && Object.keys(product.brand).length > 0 && (
                         <p className='by'>
                           By <span>{product.brand.name}</span>
@@ -58,16 +64,15 @@ const ProductList = props => {
                     </div>
                   </div>
                   <div className='d-flex flex-row justify-content-between align-items-center px-4 mb-2 item-footer'>
-                    <p className='price mb-0'>${product.price}</p>
+                    <p className='price mb-0'>{formatIDR(product.price)}</p>
                     {product.totalReviews > 0 && (
                       <p className='mb-0'>
                         <span className='fs-16 fw-normal mr-1'>
                           {parseFloat(product?.averageRating).toFixed(1)}
                         </span>
                         <span
-                          className={`fa fa-star ${
-                            product.totalReviews !== 0 ? 'checked' : ''
-                          }`}
+                          className={`fa fa-star ${product.totalReviews !== 0 ? 'checked' : ''
+                            }`}
                           style={{ color: '#ffb302' }}
                         ></span>
                       </p>

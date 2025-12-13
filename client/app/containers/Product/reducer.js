@@ -40,7 +40,7 @@ const initialState = {
     quantity: 1,
     price: 1,
     image: {},
-      sizes: [],
+    sizes: [],
     isActive: true,
     taxable: { value: 0, label: 'No' },
     brand: {
@@ -61,7 +61,7 @@ const initialState = {
     category: 'all',
     brand: 'all',
     min: 1,
-    max: 2500,
+    max: 1000000,
     rating: 0,
     order: 0,
     totalPages: 1,
@@ -185,8 +185,8 @@ const productReducer = (state = initialState, action) => {
       return {
         ...state,
         productShopData: {
-            quantity: 1,
-            selectedSize: null
+          quantity: 1,
+          selectedSize: null
         },
         shopFormErrors: {}
       };
@@ -206,7 +206,7 @@ const productReducer = (state = initialState, action) => {
           category: 'all',
           brand: 'all',
           min: 1,
-          max: 2500,
+          max: 1000000,
           rating: 0,
           order: 0,
           totalPages: 1,

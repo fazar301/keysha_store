@@ -7,13 +7,13 @@ exports.getStoreProductsQuery = (min, max, rating) => {
 
   const priceFilter = min && max ? { price: { $gte: min, $lte: max } } : {};
   const ratingFilter = rating
-    ? { rating: { $gte: rating } }
-    : { rating: { $gte: rating } };
+    ? { averageRating: { $gte: rating } }
+    : {};
 
   const matchQuery = {
     isActive: true,
-    price: priceFilter.price,
-    averageRating: ratingFilter.rating
+    ...priceFilter,
+    ...ratingFilter
   };
 
   const basicQuery = [
@@ -38,9 +38,16 @@ exports.getStoreProductsQuery = (min, max, rating) => {
         'brand.isActive': '$brands.isActive'
       }
     },
+    // Filter: show products with active brands OR no brand
+    // This allows products without brands to show up
     {
       $match: {
-        'brand.isActive': true
+        $or: [
+          { 'brand.isActive': true },
+          { 'brand.isActive': { $exists: false } },
+          { 'brand._id': { $exists: false } },
+          { brand: null }
+        ]
       }
     },
     {

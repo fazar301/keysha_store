@@ -16,8 +16,8 @@ import LoadingIndicator from '../../components/Common/LoadingIndicator';
 
 class ProductsShop extends React.PureComponent {
   componentDidMount() {
-    const slug = this.props.match.params.slug;
-    this.props.filterProducts(slug);
+    // Initialize with default filters (all products)
+    this.props.filterProducts('category', 'all');
   }
 
   render() {

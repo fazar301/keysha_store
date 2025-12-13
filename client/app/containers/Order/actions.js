@@ -195,13 +195,13 @@ export const updateOrderItemStatus = (itemId, status) => {
   };
 };
 
-export const addOrder = (paymentMethod = 'midtrans', totalOverride = null, shippingCost = 0, discountAmount = 0) => {
+export const addOrder = (paymentMethod = 'midtrans', totalOverride = null, shippingCost = 0, discountAmount = 0, shippingInfo = null, shippingAddress = null, saveAddress = false) => {
   return async (dispatch, getState) => {
     try {
       const cartId = localStorage.getItem('cart_id');
       const total = totalOverride !== null ? totalOverride : getState().cart.cartTotal;
 
-      console.log('addOrder - cartId:', cartId, 'total:', total, 'paymentMethod:', paymentMethod, 'shipping:', shippingCost, 'discount:', discountAmount);
+      console.log('addOrder - cartId:', cartId, 'total:', total, 'paymentMethod:', paymentMethod, 'shipping:', shippingCost, 'discount:', discountAmount, 'shippingInfo:', shippingInfo, 'shippingAddress:', shippingAddress, 'saveAddress:', saveAddress);
 
       if (!cartId) {
         console.error('No cartId found in localStorage');
@@ -214,7 +214,10 @@ export const addOrder = (paymentMethod = 'midtrans', totalOverride = null, shipp
         total,
         paymentMethod,
         shippingCost,
-        discountAmount
+        discountAmount,
+        shippingInfo: shippingInfo || null, // { courier, service, cost }
+        shippingAddress: shippingAddress || null, // Address information from checkout
+        saveAddress: saveAddress || false // Whether to save address as default
       });
 
       console.log('Order created response:', response.data);
@@ -322,5 +325,67 @@ export const placeOrder = () => {
 export const clearOrders = () => {
   return {
     type: CLEAR_ORDERS
+  };
+};
+
+// Generate label order untuk mendapatkan AWB
+export const generateLabel = (orderId, destinationInfo = {}) => {
+  return async (dispatch, getState) => {
+    try {
+      dispatch(setOrderLoading(true));
+
+      const response = await axios.post(`${API_URL}/order/${orderId}/generate-label`, destinationInfo);
+
+      if (response.data.success) {
+        // Refresh order untuk mendapatkan AWB terbaru
+        dispatch(fetchOrder(orderId, false));
+
+        const successfulOptions = {
+          title: 'Label berhasil dibuat!',
+          message: `Nomor resi: ${response.data.data.airwayBill}`,
+          position: 'tr',
+          autoDismiss: 2
+        };
+
+        dispatch(success(successfulOptions));
+      } else {
+        handleError({ message: response.data.error || 'Gagal membuat label' }, dispatch);
+      }
+    } catch (error) {
+      handleError(error, dispatch);
+    } finally {
+      dispatch(setOrderLoading(false));
+    }
+  };
+};
+
+// Retry generate label
+export const retryLabel = (orderId) => {
+  return async (dispatch, getState) => {
+    try {
+      dispatch(setOrderLoading(true));
+
+      const response = await axios.post(`${API_URL}/order/${orderId}/retry-label`);
+
+      if (response.data.success) {
+        // Refresh order untuk mendapatkan AWB terbaru
+        dispatch(fetchOrder(orderId, false));
+
+        const successfulOptions = {
+          title: 'Label berhasil dibuat!',
+          message: `Nomor resi: ${response.data.data.airwayBill}`,
+          position: 'tr',
+          autoDismiss: 2
+        };
+
+        dispatch(success(successfulOptions));
+      } else {
+        handleError({ message: response.data.error || 'Gagal membuat label' }, dispatch);
+      }
+    } catch (error) {
+      handleError(error, dispatch);
+    } finally {
+      dispatch(setOrderLoading(false));
+    }
   };
 };

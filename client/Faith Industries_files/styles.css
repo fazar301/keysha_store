@@ -1,0 +1,30 @@
+.shopify-section-group-footer-group p {
+  margin-bottom: unset !Important;margin-top: unset !Important;
+}
+
+.product-badges__badge.sale{
+  background: #dc2222;
+}
+
+.price.sale{
+  color: #dc2222;
+  font-weight: bold;
+}
+
+pickup-availability,
+.pickup-availability , .product__pickup-availabilities{
+  display: none !important;
+}
+@media screen and (width < 750px) {
+  .collection-list__carousel slideshow-slides {
+    height: 75vw;
+  }
+
+  li.menu-drawer__list-item--flat {
+    margin-block-end: unset !important;
+    
+    a{
+      font-size: 18px;
+    }
+  }
+}

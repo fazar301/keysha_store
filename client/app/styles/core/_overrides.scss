@@ -59,9 +59,28 @@
       font-size: $font-size-x-small !important;
       color: $theme-dark-gray;
       margin-left: 5px;
+      vertical-align: middle;
+      display: inline-block;
+      line-height: 1;
       -webkit-transition: $layout-transition-speed;
       transition: $layout-transition-speed;
     }
+  }
+}
+
+// Apply dropdown-caret styling to all nav-links (not just inside dropdowns)
+.nav-link {
+  .dropdown-caret {
+    font-size: 10px !important;
+    color: $theme-dark-gray;
+    margin-left: 5px;
+    vertical-align: middle;
+    display: inline-block;
+    line-height: 1;
+    width: auto;
+    height: auto;
+    -webkit-transition: $layout-transition-speed;
+    transition: $layout-transition-speed;
   }
 }
 
@@ -69,6 +88,7 @@
   &:hover {
     color: $white !important;
   }
+
   &:focus {
     box-shadow: none;
   }
@@ -81,6 +101,7 @@ hr {
 .lead {
   font-size: $font-size-medium;
 }
+
 // end bootstrap overrides
 
 // start react-notification-system-redux overrides
@@ -89,6 +110,7 @@ hr {
     font-weight: $font-weight-normal !important;
   }
 }
+
 // end react-notification-system-redux overrides
 
 // start carousel styles
@@ -128,4 +150,5 @@ hr {
   font-size: $font-size-medium !important;
   background-color: $secondary-bg;
 }
+
 // end popover styles

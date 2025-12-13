@@ -7,54 +7,107 @@
 import React from 'react';
 
 import { connect } from 'react-redux';
-import { Row, Col } from 'reactstrap';
+import { Container } from 'reactstrap';
 
 import actions from '../../actions';
 import banners from './banners.json';
 import CarouselSlider from '../../components/Common/CarouselSlider';
 import { responsiveOneItemCarousel } from '../../components/Common/CarouselSlider/utils';
+import ProductList from '../../components/Store/ProductList';
+import LoadingIndicator from '../../components/Common/LoadingIndicator';
 
 class Homepage extends React.PureComponent {
+  componentDidMount() {
+    this.props.fetchNewArrivals(12);
+    // Try to fetch accessories, if category doesn't exist it will return empty array
+    this.props.fetchAccessories('accessories', 12);
+  }
+
   render() {
+    const {
+      newArrivals,
+      accessories,
+      isLoading,
+      authenticated,
+      updateWishlist
+    } = this.props;
+
     return (
       <div className='homepage'>
-        <Row className='flex-row'>
-          <Col xs='12' lg='6' className='order-lg-2 mb-3 px-3 px-md-2'>
-            <div className='home-carousel'>
-              <CarouselSlider
-                swipeable={true}
-                showDots={true}
-                infinite={true}
-                autoPlay={false}
-                slides={banners}
-                responsive={responsiveOneItemCarousel}
-              >
-                {banners.map((item, index) => (
-                  <img key={index} src={item.imageUrl} />
-                ))}
-              </CarouselSlider>
+        {/* Full-width Carousel */}
+        <div className='homepage-carousel-wrapper'>
+          <div className='homepage-carousel'>
+            <CarouselSlider
+              swipeable={true}
+              showDots={true}
+              infinite={true}
+              autoPlay={true}
+              autoPlaySpeed={5000}
+              slides={banners}
+              responsive={responsiveOneItemCarousel}
+            >
+              {banners.map((item, index) => (
+                <div key={index} className='carousel-slide'>
+                  <img
+                    src={item.imageUrl}
+                    alt={item.title || `Banner ${index + 1}`}
+                    className='carousel-image'
+                  />
+                </div>
+              ))}
+            </CarouselSlider>
+          </div>
+        </div>
+
+        <Container>
+          {/* New Arrivals Section */}
+          <div className='homepage-section'>
+            <div className='section-header'>
+              <h2 className='section-title'>New Arrivals</h2>
             </div>
-          </Col>
-          <Col xs='12' lg='3' className='order-lg-1 mb-3 px-3 px-md-2'>
-            <div className='d-flex flex-column h-100 justify-content-between'>
-              <img src='/images/banners/banner-2.jpg' className='mb-3' />
-              <img src='/images/banners/banner-5.jpg' />
+            {isLoading && newArrivals.length === 0 ? (
+              <LoadingIndicator />
+            ) : (
+              <>
+                {newArrivals && newArrivals.length > 0 ? (
+                  <ProductList
+                    products={newArrivals}
+                    authenticated={authenticated}
+                    updateWishlist={updateWishlist}
+                  />
+                ) : (
+                  <p className='text-center py-5'>No new arrivals available.</p>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Accessories Section */}
+          {accessories && accessories.length > 0 && (
+            <div className='homepage-section'>
+              <div className='section-header'>
+                <h2 className='section-title'>Accessories</h2>
+              </div>
+              <ProductList
+                products={accessories}
+                authenticated={authenticated}
+                updateWishlist={updateWishlist}
+              />
             </div>
-          </Col>
-          <Col xs='12' lg='3' className='order-lg-3 mb-3 px-3 px-md-2'>
-            <div className='d-flex flex-column h-100 justify-content-between'>
-              <img src='/images/banners/banner-2.jpg' className='mb-3' />
-              <img src='/images/banners/banner-6.jpg' />
-            </div>
-          </Col>
-        </Row>
+          )}
+        </Container>
       </div>
     );
   }
 }
 
 const mapStateToProps = state => {
-  return {};
+  return {
+    newArrivals: state.homepage.newArrivals,
+    accessories: state.homepage.accessories,
+    isLoading: state.homepage.isLoading,
+    authenticated: state.authentication.authenticated
+  };
 };
 
 export default connect(mapStateToProps, actions)(Homepage);

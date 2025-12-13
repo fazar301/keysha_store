@@ -1,2 +1,76 @@
-// .homepage {
-// }
+.homepage {
+    .homepage-carousel-wrapper {
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        margin-bottom: 3rem;
+
+        .homepage-carousel {
+            width: 100%;
+
+            .carousel-slide {
+                width: 100%;
+                height: auto;
+                position: relative;
+
+                .carousel-image {
+                    width: 100%;
+                    height: auto;
+                    display: block;
+                    object-fit: cover;
+                    max-height: 600px;
+
+                    @media (max-width: 768px) {
+                        max-height: 400px;
+                    }
+                }
+            }
+        }
+    }
+
+    .homepage-section {
+        margin-bottom: 4rem;
+
+        &:last-child {
+            margin-bottom: 2rem;
+        }
+
+        .section-header {
+            margin-bottom: 2rem;
+            text-align: center;
+
+            .section-title {
+                font-size: 2rem;
+                font-weight: 600;
+                margin: 0;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+
+                @media (max-width: 768px) {
+                    font-size: 1.5rem;
+                }
+            }
+        }
+    }
+
+    // Product list styling for homepage - override default grid
+    .product-list {
+        @media (max-width: 767px) {
+            grid-template-columns: repeat(2, 1fr) !important;
+            grid-gap: 1rem !important;
+        }
+
+        @media (min-width: 768px) and (max-width: 991px) {
+            grid-template-columns: repeat(3, 1fr) !important;
+            grid-gap: 1.5rem !important;
+        }
+
+        @media (min-width: 992px) {
+            grid-template-columns: repeat(4, 1fr) !important;
+            grid-gap: 1.5rem !important;
+        }
+    }
+}

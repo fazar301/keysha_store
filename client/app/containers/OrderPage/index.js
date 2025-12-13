@@ -34,7 +34,9 @@ class OrderPage extends React.PureComponent {
       user,
       isLoading,
       cancelOrder,
-      updateOrderItemStatus
+      updateOrderItemStatus,
+      generateLabel,
+      retryLabel
     } = this.props;
 
     return (
@@ -47,6 +49,8 @@ class OrderPage extends React.PureComponent {
             user={user}
             cancelOrder={cancelOrder}
             updateOrderItemStatus={updateOrderItemStatus}
+            generateLabel={generateLabel}
+            retryLabel={retryLabel}
             onBack={() => {
               if (window.location.toString().includes('success')) {
                 history.push('/dashboard/orders');

@@ -92,6 +92,7 @@
 
   .navbar-nav {
     flex-direction: row;
+
     @include media-breakpoint-up(md) {
       margin-left: 20px;
     }
@@ -99,9 +100,21 @@
     .nav-link {
       padding-top: 0;
       padding-bottom: 0;
+      display: inline-flex;
+      align-items: center;
 
       &.active {
         color: $font-hover-color !important;
+      }
+
+      .dropdown-caret {
+        font-size: 10px !important;
+        vertical-align: middle;
+        line-height: 1;
+        margin-left: 5px;
+        display: inline-block;
+        width: auto;
+        height: auto;
       }
     }
 
@@ -119,6 +132,7 @@
     .dropdown-menu {
       &.nav-brand-dropdown {
         padding: 0;
+
         @include media-breakpoint-down(sm) {
           left: -30px;
           min-width: 270px;
@@ -128,6 +142,7 @@
 
     .nav-item {
       position: relative;
+
       @include media-breakpoint-down(sm) {
         margin-right: 15px;
       }
@@ -138,6 +153,7 @@
     @include flex();
     flex-wrap: wrap;
     align-items: center;
+
     @include media-breakpoint-down(sm) {
       margin-top: 10px;
       justify-content: center;
@@ -146,6 +162,7 @@
     .logo {
       margin: 0px;
       color: $font-custom-color !important;
+
       @include media-breakpoint-up(md) {
         margin-left: 15px;
       }
@@ -179,6 +196,7 @@
 // mini brand
 .mini-brand {
   min-width: 270px;
+
   @include media-breakpoint-up(md) {
     min-width: 500px;
   }
@@ -192,6 +210,7 @@
 
 .mini-brand-list {
   padding: 16px 20px;
+
   @include media-breakpoint-up(md) {
     padding: 20px 40px;
   }

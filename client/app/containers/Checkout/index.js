@@ -10,6 +10,7 @@ import SelectOption from '../../components/Common/SelectOption';
 import OrderSummary from '../../components/Store/Checkout/OrderSummary';
 import actions from '../../actions';
 import { API_URL } from '../../constants';
+import { formatIDR } from '../../utils';
 
 class Checkout extends React.PureComponent {
   constructor(props) {
@@ -47,14 +48,83 @@ class Checkout extends React.PureComponent {
       loadingShipping: false,
       // District asal (default bisa diset di env atau config)
       // Note: API baru menggunakan district ID, bukan city ID
-      originDistrictId: process.env.ORIGIN_DISTRICT_ID || '1391', // Default district ID
-      promo: { code: '', applied: false, discount: 0, message: '' }
+      originDistrictId: process.env.ORIGIN_DISTRICT_ID || '979', // Default district ID (district toko baju)
+      promo: { code: '', applied: false, discount: 0, message: '' },
+      saveAddress: false, // Checkbox untuk menyimpan alamat
+      loadingAddress: false
     };
   }
 
   componentDidMount() {
-    this.fetchProvinces();
+    this.fetchProvinces().then(() => {
+      // Load default address setelah provinces sudah di-load
+      this.loadDefaultAddress();
+    });
   }
+
+  // Load default address untuk autofill
+  loadDefaultAddress = async () => {
+    this.setState({ loadingAddress: true });
+    try {
+      const response = await axios.get(`${API_URL}/address`);
+      if (response.data.addresses && response.data.addresses.length > 0) {
+        const defaultAddress = response.data.addresses.find(addr => addr.isDefault) || response.data.addresses[0];
+
+        if (defaultAddress) {
+          // Set address state dengan default address
+          const newAddress = {
+            fullName: defaultAddress.fullName || '',
+            email: defaultAddress.email || '',
+            phone: defaultAddress.phone || '',
+            country: defaultAddress.country || 'Indonesia',
+            addressLine: defaultAddress.address || '',
+            cityId: defaultAddress.city || '',
+            cityName: defaultAddress.cityName || '',
+            provinceId: defaultAddress.state || '',
+            provinceName: defaultAddress.provinceName || '',
+            districtId: defaultAddress.districtId || '',
+            districtName: defaultAddress.districtName || '',
+            postalCode: defaultAddress.zipCode || ''
+          };
+
+          this.setState({ address: newAddress }, async () => {
+            // Set selected province setelah state update
+            if (defaultAddress.state && this.state.provinces.length > 0) {
+              const province = this.state.provinces.find(p => p.value === defaultAddress.state);
+              if (province) {
+                await this.handleProvinceChange(province);
+
+                // Set selected city setelah cities di-load
+                setTimeout(async () => {
+                  if (defaultAddress.city && this.state.cities.length > 0) {
+                    const city = this.state.cities.find(c => c.value === defaultAddress.city);
+                    if (city) {
+                      await this.handleCityChange(city);
+
+                      // Set selected district setelah districts di-load
+                      setTimeout(() => {
+                        if (defaultAddress.districtId && this.state.districts.length > 0) {
+                          const district = this.state.districts.find(d => d.value === defaultAddress.districtId);
+                          if (district) {
+                            this.handleDistrictChange(district);
+                          }
+                        }
+                      }, 500);
+                    }
+                  }
+                }, 500);
+              }
+            }
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error loading default address:', error);
+      // Tidak perlu error, user bisa input manual
+    } finally {
+      this.setState({ loadingAddress: false });
+    }
+  };
 
   handleAddressChange = (name, value) => {
     this.setState({ address: { ...this.state.address, [name]: value } });
@@ -71,10 +141,12 @@ class Checkout extends React.PureComponent {
           label: p.province
         }));
         this.setState({ provinces, loadingProvinces: false });
+        return provinces; // Return untuk promise
       }
     } catch (error) {
       console.error('Error fetching provinces:', error);
       this.setState({ loadingProvinces: false });
+      return [];
     }
   };
 
@@ -355,7 +427,9 @@ class Checkout extends React.PureComponent {
         label: `${option.courier} - ${option.service}`,
         price: option.price,
         etd: option.etd,
-        description: option.description
+        description: option.description,
+        courier: option.courier, // Simpan untuk tracking
+        service: option.service // Simpan untuk tracking
       }
     });
   };
@@ -376,7 +450,7 @@ class Checkout extends React.PureComponent {
 
   handlePlaceOrder = () => {
     const { cartTotal, getCartId, addOrder } = this.props;
-    const { shipping, promo } = this.state;
+    const { shipping, promo, address, saveAddress } = this.state;
 
     if (!shipping) {
       alert('Silakan pilih metode pengiriman terlebih dahulu.');
@@ -388,10 +462,34 @@ class Checkout extends React.PureComponent {
     const discountAmount = promo.applied ? subtotal * promo.discount : 0;
     const total = Math.round(subtotal + shippingCost - discountAmount);
 
+    // Prepare shipping info untuk disimpan di order
+    const shippingInfo = {
+      courier: shipping.courier || shipping.id?.split('_')[0] || '',
+      service: shipping.service || shipping.id?.split('_')[1] || '',
+      cost: shippingCost
+    };
+
+    // Prepare shipping address untuk disimpan di order
+    const shippingAddressData = {
+      fullName: address.fullName,
+      email: address.email,
+      phone: address.phone,
+      address: address.addressLine,
+      addressLine: address.addressLine, // Keep both for compatibility
+      cityId: address.cityId,
+      cityName: address.cityName,
+      provinceId: address.provinceId,
+      provinceName: address.provinceName,
+      districtId: address.districtId,
+      districtName: address.districtName,
+      postalCode: address.postalCode,
+      country: address.country
+    };
+
     // Ensure cart_id exists before placing order
     Promise.all([getCartId()]).then(() => {
-      // dispatch addOrder with total override, shipping, and discount so midtrans uses correct amount
-      addOrder('midtrans', total, shippingCost, discountAmount);
+      // dispatch addOrder with total override, shipping, discount, shippingInfo, shippingAddress, dan saveAddress
+      addOrder('midtrans', total, shippingCost, discountAmount, shippingInfo, shippingAddressData, saveAddress);
     }).catch(err => {
       console.error('Error getting cart ID:', err);
     });
@@ -464,7 +562,23 @@ class Checkout extends React.PureComponent {
                         <small className='text-muted'>Pilih kota terlebih dahulu</small>
                       )}
                     </Col>
-                    <Col md='12'><Input label='Kode POS' name='postalCode' value={address.postalCode} onInputChange={this.handleAddressChange} /></Col>
+                    <Col md='6'>
+                      <Input label='Kode POS' name='postalCode' value={address.postalCode} onInputChange={this.handleAddressChange} />
+                    </Col>
+                    <Col md='12' className='mt-3'>
+                      <div className='form-check'>
+                        <input
+                          className='form-check-input'
+                          type='checkbox'
+                          id='saveAddress'
+                          checked={this.state.saveAddress}
+                          onChange={(e) => this.setState({ saveAddress: e.target.checked })}
+                        />
+                        <label className='form-check-label' htmlFor='saveAddress'>
+                          Simpan alamat ini untuk pemesanan berikutnya
+                        </label>
+                      </div>
+                    </Col>
                   </Row>
                 </div>
               )}
@@ -506,7 +620,7 @@ class Checkout extends React.PureComponent {
                       >
                         <div className='title'>{option.courier} - {option.service}</div>
                         <div className='subtitle'>{option.description} {option.etd ? `(${option.etd} hari)` : ''}</div>
-                        <div className='price'>Rp {option.price.toLocaleString('id-ID')}</div>
+                        <div className='price'>{formatIDR(option.price)}</div>
                       </div>
                     ))}
                   </div>

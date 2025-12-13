@@ -13,10 +13,13 @@ const { Handle } = Slider;
 
 const handle = props => {
   const { value, dragging, index, ...restProps } = props;
+  const formatPrice = (val) => {
+    return `IDR ${val.toLocaleString('id-ID')}`;
+  };
   return (
     <SliderTooltip
       prefixCls='rc-slider-tooltip'
-      overlay={`$${value}`}
+      overlay={formatPrice(value)}
       visible={dragging}
       placement='top'
       key={index}
@@ -85,7 +88,7 @@ class RangeSlider extends React.Component {
             defaultValue={defaultValue}
             marks={marks}
             handle={handle}
-            tipFormatter={value => `$${value}`}
+            tipFormatter={value => `IDR ${value.toLocaleString('id-ID')}`}
             value={rangeValue}
             onChange={this.onRangeChange}
             onAfterChange={this.onAfterRangeChange}

@@ -10,6 +10,7 @@ import { Link } from 'react-router-dom';
 import { Container, Row, Col } from 'reactstrap';
 
 import Button from '../../Common/Button';
+import { formatIDR } from '../../../utils';
 
 const CartList = props => {
   const { cartItems, handleRemoveFromCart } = props;
@@ -29,11 +30,10 @@ const CartList = props => {
                   <div className='d-flex align-items-center'>
                     <img
                       className='item-image mr-2'
-                      src={`${
-                        item.imageUrl
+                      src={`${item.imageUrl
                           ? item.imageUrl
                           : '/images/placeholder-image.png'
-                      }`}
+                        }`}
                     />
 
                     <Link
@@ -62,7 +62,7 @@ const CartList = props => {
                   <p className='item-label'>price</p>
                 </Col>
                 <Col xs='3' className='text-right'>
-                  <p className='value price'>{` $${item?.totalPrice}`}</p>
+                  <p className='value price'>{formatIDR(item?.totalPrice)}</p>
                 </Col>
               </Row>
               <Row className='mb-2 align-items-center'>

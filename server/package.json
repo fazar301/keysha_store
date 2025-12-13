@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "nodemon",
     "start": "cross-env NODE_ENV=production node index.js",
-    "seed:db": "node utils/seed.js"
+    "seed:db": "node utils/seed.js",
+    "update:faithindustries": "node utils/updateProductsWithFaithIndustries.js",
+    "debug:products": "node utils/debugProducts.js"
   },
   "dependencies": {
     "@faker-js/faker": "^8.4.1",

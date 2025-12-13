@@ -114,8 +114,11 @@ exports.formatOrders = orders => {
     return {
       _id: order._id,
       total: parseFloat(Number(order.total.toFixed(2))),
+      discount: order.discount || 0,
       created: order.created,
-      products: order?.cart?.products
+      products: order?.cart?.products,
+      shipping: order.shipping || null,
+      shippingAddress: order.shippingAddress || null
     };
   });
 

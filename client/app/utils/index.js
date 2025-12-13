@@ -67,3 +67,12 @@ export const getMemoizedRandomColors = s => {
     return result;
   }
 };
+
+// Format currency untuk Rupiah (IDR)
+export const formatIDR = (amount) => {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0
+  }).format(amount || 0);
+};

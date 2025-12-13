@@ -150,7 +150,9 @@ router.get('/districts', async (req, res) => {
  */
 router.post('/cost', async (req, res) => {
     try {
-        req.body.origin = 979;
+        // Gunakan origin dari environment variable atau default ke 979
+        const originDistrictId = process.env.ORIGIN_DISTRICT_ID || '979';
+        req.body.origin = originDistrictId;
         const { origin, destination, weight, courier = 'jne:pos:tiki', price = 'lowest' } = req.body;
         console.log('Shipping cost request:', { origin, destination, weight, courier, price });
 
@@ -243,6 +245,47 @@ router.post('/cost', async (req, res) => {
         res.status(500).json({
             success: false,
             error: error.response?.data?.error || error.message || 'Failed to calculate shipping cost'
+        });
+    }
+});
+
+/**
+ * GET /api/shipping/tracking
+ * Mendapatkan history tracking AWB
+ * Query params: courier (required), airwayBill (required)
+ */
+router.get('/tracking', async (req, res) => {
+    try {
+        const { courier, airwayBill } = req.query;
+
+        console.log('Tracking request:', { courier, airwayBill });
+
+        // Validasi input
+        if (!courier || !airwayBill) {
+            return res.status(400).json({
+                success: false,
+                error: 'Courier and airway bill number are required'
+            });
+        }
+
+        const result = await rajaOngkir.getTrackingHistory(courier, airwayBill);
+
+        if (result.success) {
+            res.status(200).json({
+                success: true,
+                tracking: result.data
+            });
+        } else {
+            res.status(400).json({
+                success: false,
+                error: result.error || 'Failed to get tracking information'
+            });
+        }
+    } catch (error) {
+        console.error('Tracking error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to get tracking information'
         });
     }
 });
