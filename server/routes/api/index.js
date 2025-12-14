@@ -14,6 +14,8 @@ const orderRoutes = require('./order');
 const reviewRoutes = require('./review');
 const wishlistRoutes = require('./wishlist');
 const shippingRoutes = require('./shipping');
+const statisticsRoutes = require('./statistics');
+const virtualTryOnRoutes = require('./virtual-try-on');
 
 // auth routes
 router.use('/auth', authRoutes);
@@ -56,5 +58,11 @@ router.use('/wishlist', wishlistRoutes);
 
 // Shipping routes
 router.use('/shipping', shippingRoutes);
+
+// Statistics routes
+router.use('/statistics', statisticsRoutes);
+
+// Virtual Try-On routes
+router.use('/virtual-try-on', virtualTryOnRoutes);
 
 module.exports = router;

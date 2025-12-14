@@ -12,8 +12,9 @@ const setupDB = require('./utils/db');
 const { port } = keys;
 const app = express();
 
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+// Increase body parser limit for large base64 images (50MB)
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(express.json({ limit: '50mb' }));
 app.use(
   helmet({
     contentSecurityPolicy: false,

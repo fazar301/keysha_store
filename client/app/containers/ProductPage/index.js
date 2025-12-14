@@ -19,6 +19,7 @@ import NotFound from '../../components/Common/NotFound';
 import { BagIcon } from '../../components/Common/Icon';
 import ProductReviews from '../../components/Store/ProductReviews';
 import SocialShare from '../../components/Store/SocialShare';
+import VirtualTryOn from '../../components/Store/VirtualTryOn';
 import { formatIDR } from '../../utils';
 
 class ProductPage extends React.PureComponent {
@@ -66,12 +67,12 @@ class ProductPage extends React.PureComponent {
           <>
             <Row className='flex-row'>
               <Col xs='12' md='5' lg='5' className='mb-3 px-3 px-md-2'>
-                <div className='position-relative'>
+                <div className='position-relative product-image-container'>
                   <img
                     className='item-image'
                     src={`${product.imageUrl
-                        ? product.imageUrl
-                        : '/images/placeholder-image.png'
+                      ? product.imageUrl
+                      : '/images/placeholder-image.png'
                       }`}
                   />
                   {product.inventory <= 0 && !shopFormErrors['quantity'] ? (
@@ -79,6 +80,7 @@ class ProductPage extends React.PureComponent {
                   ) : (
                     <p className='stock in-stock'>In stock</p>
                   )}
+                  <VirtualTryOn product={product} />
                 </div>
               </Col>
               <Col xs='12' md='7' lg='7' className='mb-3 px-3 px-md-2'>
