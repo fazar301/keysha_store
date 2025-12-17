@@ -1,89 +1,246 @@
-.panel-body {
-  // padding: 10px;
+// Dashboard Container - Override Container max-width for dashboard pages
+.main .container {
+  .customer,
+  .merchant,
+  .admin {
+    // Force full width for dashboard
+  }
+}
+
+// Override Bootstrap Container max-width for dashboard
+body .main .container:has(.customer),
+body .main .container:has(.merchant),
+body .main .container:has(.admin) {
+  max-width: 100% !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+// Fallback for browsers that don't support :has()
+body .main .wrapper .customer ~ *,
+body .main .wrapper .merchant ~ *,
+body .main .wrapper .admin ~ * {
+  // Ensure full width
+}
+
+// Dashboard Container
+.customer,
+.merchant,
+.admin {
+  padding: 2rem 0;
+  min-height: calc(100vh - 200px);
+  background-color: #f8f9fa;
+  width: 100%;
 
   @include media-breakpoint-down(sm) {
-    margin-top: 20px;
+    padding: 1.5rem 0;
+  }
+
+  .dashboard-container {
+    max-width: 100%;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 4rem;
+
+    @include media-breakpoint-down(xl) {
+      padding: 0 3rem;
+    }
+
+    @include media-breakpoint-down(lg) {
+      padding: 0 2.5rem;
+    }
+
+    @include media-breakpoint-down(md) {
+      padding: 0 1.5rem;
+    }
+
+    @include media-breakpoint-down(sm) {
+      padding: 0 1rem;
+    }
+  }
+
+  .row {
+    margin: 0;
+    align-items: flex-start;
+
+    @include media-breakpoint-down(md) {
+      gap: 1.5rem;
+    }
+
+    > [class*='col-'] {
+      padding-left: 0;
+      padding-right: 0;
+
+      @include media-breakpoint-up(md) {
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+    }
+  }
+}
+
+.panel-body {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 2.5rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  min-height: 500px;
+  transition: all 0.3s ease;
+
+  @include media-breakpoint-down(md) {
+    padding: 2rem 1.5rem;
+  }
+
+  @include media-breakpoint-down(sm) {
+    margin-top: 1.5rem;
+    padding: 1.5rem 1rem;
+    border-radius: 12px;
+  }
+
+  &:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
   }
 }
 
 .panel-sidebar {
-  .panel-title,
-  .menu-panel {
-    margin: 0;
-    padding: 10px 0px;
-    text-align: center;
-    border: $border-primary;
-    border-bottom: none;
-  }
+  position: sticky;
+  top: 2rem;
+  height: fit-content;
 
-  .menu-panel {
-    &.collapse {
-      border-bottom: $border-primary;
-
-      &:hover {
-        background-color: $theme-gray;
-      }
-    }
+  @include media-breakpoint-down(sm) {
+    position: relative;
+    top: 0;
+    margin-bottom: 1rem;
   }
 
   .panel-title {
+    margin: 0 0 1.5rem 0;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+    color: #ffffff !important;
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-align: center;
+    border-radius: 12px 12px 0 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
     @include media-breakpoint-down(sm) {
       display: none;
     }
-  }
 
-  .navbar {
-    padding: 0px;
+    * {
+      color: #ffffff !important;
+    }
   }
 
   .menu-panel {
     display: none;
     width: 100%;
+    margin-bottom: 0;
+    padding: 0.875rem 1.25rem;
+    background-color: #1a1a1a;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+
     @include media-breakpoint-down(sm) {
       display: block;
       cursor: pointer;
+      margin-bottom: 1rem;
     }
 
     &:hover {
-      background-color: transparent;
+      background-color: #2a2a2a;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    &.collapse {
+      border-radius: 8px 8px 0 0;
+      margin-bottom: 0;
     }
 
     .btn-text {
-      font-size: $font-size-heading-xsmall !important;
-      font-weight: $font-weight-normal;
+      font-size: 0.875rem !important;
+      font-weight: 600 !important;
+      color: #ffffff !important;
+    }
+  }
+
+  .navbar {
+    padding: 0;
+    background-color: #ffffff;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    border: 1px solid #f0f0f0;
+
+    @include media-breakpoint-down(sm) {
+      border-radius: 0 0 8px 8px;
     }
   }
 
   .panel-links {
     width: 100%;
-    text-align: center;
+    text-align: left;
     margin-bottom: 0;
+    list-style: none;
+    padding: 0.5rem 0;
 
     li {
-      border-top: $border-primary;
-      border-right: $border-primary;
-      border-left: $border-primary;
+      border: none;
+      margin: 0.25rem 0;
+      transition: all 0.2s ease;
 
       &:hover {
         a {
-          color: $font-custom-color !important;
+          color: #1a1a1a !important;
+          background-color: #f8f9fa;
+          transform: translateX(4px);
         }
       }
 
-      &:last-child {
-        border-bottom: $border-primary;
-      }
-
       a {
-        display: block;
-        padding: 10px 0px;
+        display: flex;
+        align-items: center;
+        padding: 0.875rem 1.5rem;
         text-transform: capitalize;
-        color: $font-custom-color !important;
-        font-weight: $font-weight-normal;
+        color: #666 !important;
+        font-weight: 500;
+        font-size: 0.9375rem;
+        transition: all 0.2s ease;
+        position: relative;
+        border-radius: 8px;
+        margin: 0 0.5rem;
+
+        &::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 3px;
+          height: 0;
+          background-color: #1a1a1a;
+          border-radius: 0 2px 2px 0;
+          transition: all 0.2s ease;
+        }
 
         &.active-link {
-          font-weight: $font-weight-medium;
-          background-color: $white;
+          font-weight: 600;
+          background-color: #f0f4ff;
+          color: #1a1a1a !important;
+
+          &::before {
+            height: 60%;
+          }
         }
       }
     }

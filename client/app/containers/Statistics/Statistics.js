@@ -161,7 +161,7 @@ const Statistics = props => {
                         <CardBody>
                             <div className='stat-card-content'>
                                 <div className='stat-icon'>
-                                    <i className='fa fa-money-bill-wave' style={{ fontSize: '2rem', color: '#28a745' }} />
+                                    <i className='fa fa-dollar-sign' style={{ fontSize: '2rem', color: '#28a745' }} />
                                 </div>
                                 <div className='stat-info'>
                                     <h3 className='stat-value'>{formatIDR(statistics.totals?.revenue || 0)}</h3>
@@ -191,7 +191,7 @@ const Statistics = props => {
                         <CardBody>
                             <div className='stat-card-content'>
                                 <div className='stat-icon'>
-                                    <i className='fa fa-box' style={{ fontSize: '2rem', color: '#dc3545' }} />
+                                    <i className='fa fa-cube' style={{ fontSize: '2rem', color: '#dc3545' }} />
                                 </div>
                                 <div className='stat-info'>
                                     <h3 className='stat-value'>{statistics.totals?.products || 0}</h3>

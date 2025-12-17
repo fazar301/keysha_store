@@ -2,49 +2,118 @@
 
 // Statistics Dashboard Styles
 .statistics-dashboard {
-    padding: 20px;
+    padding: 0;
+    width: 100%;
 
     h2 {
-        color: #333;
-        font-weight: 600;
+        color: #1a1a1a;
+        font-weight: 700;
+        font-size: 1.75rem;
+        margin-bottom: 2.5rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .row {
+        margin-left: -0.75rem;
+        margin-right: -0.75rem;
+        margin-bottom: 0 !important;
+
+        &.mb-4 {
+            margin-bottom: 0 !important;
+        }
+
+        > [class*='col-'] {
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
     }
 
     .stat-card {
         height: 100%;
-        border: none;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        transition: transform 0.2s, box-shadow 0.2s;
+        border: none !important;
+        border-radius: 12px !important;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
+        transition: all 0.3s ease;
+        background-color: #ffffff !important;
+        overflow: hidden;
+        margin-bottom: 0;
+        display: flex;
+        flex-direction: column;
 
         &:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+        }
+
+        .card-body {
+            padding: 0.5rem !important;
+            flex: 1;
+            display: flex;
+            align-items: center;
         }
 
         .stat-card-content {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 0.625rem;
+            width: 100%;
 
             .stat-icon {
                 flex-shrink: 0;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 8px;
+                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+                i {
+                    font-size: 1.1rem !important;
+                    display: block !important;
+                    visibility: visible !important;
+                    opacity: 1 !important;
+                }
             }
 
             .stat-info {
                 flex: 1;
+                min-width: 0;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                overflow: hidden;
 
                 .stat-value {
-                    font-size: 2rem;
-                    font-weight: 700;
-                    margin: 0;
-                    color: #333;
+                    font-size: 1rem !important;
+                    font-weight: 700 !important;
+                    margin: 0 0 0.1rem 0 !important;
+                    color: #1a1a1a !important;
+                    line-height: 1.2 !important;
+                    letter-spacing: normal !important;
+                    display: block;
+                    transform: none !important;
+                    text-transform: none !important;
+                    font-family: inherit !important;
+                    height: auto !important;
+                    vertical-align: baseline !important;
+                    word-break: break-word;
+                    overflow-wrap: break-word;
                 }
 
                 .stat-label {
-                    font-size: 0.9rem;
+                    font-size: 0.75rem;
                     color: #666;
-                    margin: 5px 0 0 0;
+                    margin: 0;
                     text-transform: uppercase;
                     letter-spacing: 0.5px;
+                    font-weight: 600;
+                    line-height: 1.3;
+                    display: block;
+                    transform: none !important;
                 }
             }
         }
@@ -52,12 +121,22 @@
 
     .card {
         border: none;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        margin-bottom: 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        margin-bottom: 0;
+        background-color: #ffffff;
+        padding: 1rem;
+        transition: all 0.3s ease;
+
+        &:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        }
 
         h4 {
-            color: #333;
+            color: #1a1a1a;
             font-weight: 600;
+            font-size: 1.125rem;
+            margin-bottom: 1.5rem;
         }
     }
 
@@ -65,12 +144,56 @@
         th {
             background-color: #f8f9fa;
             font-weight: 600;
-            color: #333;
+            color: #1a1a1a;
+            border: none;
+            padding: 1rem;
         }
 
         td {
             vertical-align: middle;
+            padding: 1rem;
+            border-color: #f0f0f0;
         }
+    }
+}
+
+// Override Container for dashboard pages
+body .main .container {
+    .customer,
+    .merchant,
+    .admin {
+        // Dashboard should use full width
+    }
+}
+
+// More specific override for Container
+.main .container {
+    .customer,
+    .merchant,
+    .admin {
+        width: 100%;
+        max-width: 100% !important;
+    }
+}
+
+// Ensure wrapper doesn't limit dashboard width
+.main .wrapper {
+    .customer,
+    .merchant,
+    .admin {
+        width: 100%;
+    }
+}
+
+// Force Container to be full width when dashboard is present
+body .main .container {
+    &:has(.customer),
+    &:has(.merchant),
+    &:has(.admin) {
+        max-width: 100% !important;
+        width: 100% !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
     }
 }
 
