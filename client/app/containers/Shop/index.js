@@ -7,8 +7,7 @@
 import React from 'react';
 
 import { connect } from 'react-redux';
-import { Switch, Route } from 'react-router-dom';
-import { Row, Col } from 'reactstrap';
+import { Switch, Route, withRouter } from 'react-router-dom';
 
 import actions from '../../actions';
 import { sortOptions } from '../../utils/store';
@@ -25,10 +24,33 @@ import SelectOption from '../../components/Common/SelectOption';
 class Shop extends React.PureComponent {
   componentDidMount() {
     document.body.classList.add('shop-page');
+    this.props.fetchStoreCategories();
   }
 
   componentWillUnmount() {
     document.body.classList.remove('shop-page');
+  }
+
+  getCategoryTitle() {
+    const { location, storeCategories } = this.props;
+    const path = location.pathname;
+
+    if (path === '/shop') {
+      return 'All';
+    }
+
+    if (path.startsWith('/shop/category/')) {
+      const slug = path.split('/shop/category/')[1];
+      const category = storeCategories.find(cat => cat.slug === slug);
+      return category ? category.name.toUpperCase() : 'Category';
+    }
+
+    if (path.startsWith('/shop/brand/')) {
+      const slug = path.split('/shop/brand/')[1];
+      return 'Brand';
+    }
+
+    return 'All';
   }
 
   render() {
@@ -38,62 +60,42 @@ class Shop extends React.PureComponent {
     const totalProducts = products.length;
     const left = limit * (currentPage - 1) + 1;
     const right = totalProducts + left - 1;
+    const categoryTitle = this.getCategoryTitle();
 
     return (
       <div className='shop'>
-        <Row xs='12'>
-          <Col
-            xs={{ size: 12, order: 1 }}
-            sm={{ size: 12, order: 1 }}
-            md={{ size: 12, order: 1 }}
-            lg={{ size: 3, order: 1 }}
-          >
+        {/* Category Header Section */}
+        <div className='shop-category-header'>
+          <div className='category-header-content'>
+            <h1 className='category-title'>{categoryTitle}</h1>
+          </div>
+        </div>
+
+        <div className='shop-content'>
+          {/* Temporarily hidden filter sidebar */}
+          {/* <div className='shop-sidebar'>
             <ProductFilter filterProducts={filterProducts} />
-          </Col>
-          <Col
-            xs={{ size: 12, order: 2 }}
-            sm={{ size: 12, order: 2 }}
-            md={{ size: 12, order: 2 }}
-            lg={{ size: 9, order: 2 }}
-          >
-            <Row className='align-items-center mx-0 mb-4 mt-4 mt-lg-0 py-3 py-lg-0 bg-white shop-toolbar'>
-              <Col
-                xs={{ size: 12, order: 1 }}
-                sm={{ size: 12, order: 1 }}
-                md={{ size: 5, order: 1 }}
-                lg={{ size: 6, order: 1 }}
-                className='text-center text-md-left mt-3 mt-md-0 mb-1 mb-md-0'
-              >
-                <span>Showing: </span>
-                {totalProducts > 0
-                  ? `${left}-${right} products of ${count} products`
-                  : `${count} products`}
-              </Col>
-              <Col
-                xs={{ size: 12, order: 2 }}
-                sm={{ size: 12, order: 2 }}
-                md={{ size: 2, order: 2 }}
-                lg={{ size: 2, order: 2 }}
-                className='text-right pr-0 d-none d-md-block'
-              >
-                <span>Sort by</span>
-              </Col>
-              <Col
-                xs={{ size: 12, order: 2 }}
-                sm={{ size: 12, order: 2 }}
-                md={{ size: 5, order: 2 }}
-                lg={{ size: 4, order: 2 }}
-              >
-                <SelectOption
-                  name={'sorting'}
-                  value={{ value: order, label: sortOptions[order].label }}
-                  options={sortOptions}
-                  handleSelectChange={(n, v) => {
-                    filterProducts('sorting', n.value);
-                  }}
-                />
-              </Col>
-            </Row>
+          </div> */}
+          <div className='shop-main-content shop-main-content-full'>
+            {/* Toolbar Section */}
+            <div className='shop-toolbar'>
+              <div className='d-flex align-items-center'>
+                <span className='item-count'>{count} items</span>
+              </div>
+              <div className='d-flex align-items-center shop-sort-container' style={{ gap: '1rem' }}>
+                <span className='sort-label d-none d-md-inline'>Sort</span>
+                <div className='shop-sort-select'>
+                  <SelectOption
+                    name={'sorting'}
+                    value={{ value: order, label: sortOptions[order].label }}
+                    options={sortOptions}
+                    handleSelectChange={(n, v) => {
+                      filterProducts('sorting', n.value);
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
             <Switch>
               <Route exact path='/shop' component={ProductsShop} />
               <Route path='/shop/category/:slug' component={CategoryShop} />
@@ -109,8 +111,8 @@ class Shop extends React.PureComponent {
                 />
               </div>
             )}
-          </Col>
-        </Row>
+          </div>
+        </div>
       </div>
     );
   }
@@ -119,8 +121,9 @@ class Shop extends React.PureComponent {
 const mapStateToProps = state => {
   return {
     advancedFilters: state.product.advancedFilters,
-    products: state.product.storeProducts
+    products: state.product.storeProducts,
+    storeCategories: state.category.storeCategories
   };
 };
 
-export default connect(mapStateToProps, actions)(Shop);
+export default connect(mapStateToProps, actions)(withRouter(Shop));

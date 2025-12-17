@@ -52,7 +52,7 @@ const OrderMeta = props => {
 
     if (isNotDelivered) {
       actions.push(
-        <Button key='cancel' size='sm' text='Cancel Order' onClick={cancelOrder} className='mr-2' />
+        <Button key='cancel' size='sm' text='Batalkan Pesanan' onClick={cancelOrder} className='mr-2' />
       );
     }
 
@@ -64,7 +64,7 @@ const OrderMeta = props => {
             key='generate-label'
             size='sm'
             variant='primary'
-            text={hasKomerceOrderId ? 'Retry Generate Label' : 'Generate Label'}
+            text={hasKomerceOrderId ? 'Coba Lagi Generate Label' : 'Generate Label'}
             onClick={handleGenerateLabel}
           />
         );
@@ -77,12 +77,12 @@ const OrderMeta = props => {
   return (
     <div className='order-meta'>
       <div className='d-flex align-items-center justify-content-between mb-3 title'>
-        <h2 className='mb-0'>Order Details</h2>
+        <h2 className='mb-0'>Detail Pesanan</h2>
         <Button
           variant='link'
           icon={<ArrowBackIcon />}
           size='sm'
-          text='Back to orders'
+          text='Kembali ke pesanan'
           onClick={onBack}
         ></Button>
       </div>
@@ -91,7 +91,7 @@ const OrderMeta = props => {
         <Col xs='12' md='8'>
           <Row>
             <Col xs='4'>
-              <p className='one-line-ellipsis'>Order ID</p>
+              <p className='one-line-ellipsis'>ID Pesanan</p>
             </Col>
             <Col xs='8'>
               <span className='order-label one-line-ellipsis'>{` ${order._id}`}</span>
@@ -99,7 +99,7 @@ const OrderMeta = props => {
           </Row>
           <Row>
             <Col xs='4'>
-              <p className='one-line-ellipsis'>Order Date</p>
+              <p className='one-line-ellipsis'>Tanggal Pesanan</p>
             </Col>
             <Col xs='8'>
               <span className='order-label one-line-ellipsis'>{` ${formatDate(
@@ -123,7 +123,7 @@ const OrderMeta = props => {
           {isAdmin && (order.shipping?.komerceOrderNo || order.shipping?.komerceOrderId) && (
             <Row className='mt-2'>
               <Col xs='4'>
-                <p className='one-line-ellipsis'>Order Number (Komerce)</p>
+                <p className='one-line-ellipsis'>Nomor Pesanan (Komerce)</p>
               </Col>
               <Col xs='8'>
                 <span className='order-label one-line-ellipsis'>

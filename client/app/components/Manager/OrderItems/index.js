@@ -81,7 +81,7 @@ const OrderItems = props => {
 
   return (
     <div className='order-items pt-3'>
-      <h2>Order Items</h2>
+      <h2>Item Pesanan</h2>
       <Row>
         {order.products.map((item, index) => (
           <Col xs='12' key={index} className='item'>
@@ -114,7 +114,7 @@ const OrderItems = props => {
                           </div>
                         </>
                       ) : (
-                        <h4>Not Available</h4>
+                        <h4>Tidak Tersedia</h4>
                       )}
                     </div>
                     <div className='d-flex justify-content-between flex-wrap d-md-none mt-1'>
@@ -123,11 +123,11 @@ const OrderItems = props => {
                         <span className='order-label order-status'>{` ${item.status}`}</span>
                       </p>
                       <p className='mb-1 mr-4'>
-                        Quantity
+                        Jumlah
                         <span className='order-label'>{` ${item.quantity}`}</span>
                       </p>
                       <p>
-                        Total Price
+                        Total Harga
                         <span className='order-label'>{` ${formatIDR(item.totalPrice)}`}</span>
                       </p>
                     </div>
@@ -142,13 +142,13 @@ const OrderItems = props => {
 
                   <div className='text-center'>
                     <p className='order-label'>{` ${item.quantity}`}</p>
-                    <p>Quantity</p>
+                    <p>Jumlah</p>
                   </div>
 
                   <div className='text-center'>
                     <p className='order-label'>{formatIDR(item.totalPrice)}</p>
 
-                    <p>Total Price</p>
+                    <p>Total Harga</p>
                   </div>
                 </div>
               </div>

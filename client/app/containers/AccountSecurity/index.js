@@ -25,9 +25,9 @@ class AccountSecurity extends React.PureComponent {
 
     return (
       <div className='account-security'>
-        <SubPage title={'Account Security'} isMenuOpen={null}>
+        <SubPage title={'Keamanan Akun'} isMenuOpen={null}>
           <div className='reset-form'>
-            <h4>Reset Password</h4>
+            <h4>Atur Ulang Kata Sandi</h4>
             <ResetPasswordForm
               resetFormData={resetFormData}
               formErrors={formErrors}

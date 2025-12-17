@@ -18,14 +18,14 @@ const MiniBrand = props => {
   return (
     <div className='mini-brand-list'>
       <div className='d-flex align-items-center justify-content-between min-brand-title'>
-        <h3 className='mb-0 text-uppercase'>Shop By Brand</h3>
+        <h3 className='mb-0 text-uppercase'>Belanja Berdasarkan Merek</h3>
         <Link
           to={'/brands'}
           className='redirect-link'
           role='menuitem'
           onClick={handleMenuItemClick}
         >
-          See all
+          Lihat semua
         </Link>
       </div>
       <div className='mini-brand-block'>

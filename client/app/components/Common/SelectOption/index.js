@@ -72,7 +72,7 @@ const dropdownStyles = {
   menu: styles => {
     return {
       ...styles,
-      zIndex: 2
+      zIndex: 1000
     };
   },
   option: (styles, { isDisabled, isFocused, isSelected }) => {

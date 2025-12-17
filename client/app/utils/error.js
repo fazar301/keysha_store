@@ -18,21 +18,21 @@ const handleError = (err, dispatch, title = '') => {
 
   if (err.response) {
     if (err.response.status === 400) {
-      unsuccessfulOptions.title = title ? title : 'Please Try Again!';
+      unsuccessfulOptions.title = title ? title : 'Silakan Coba Lagi!';
       unsuccessfulOptions.message = err.response.data.error;
       dispatch(error(unsuccessfulOptions));
     } else if (err.response.status === 404) {
       // unsuccessfulOptions.title =
       //   err.response.data.message ||
-      //   'Your request could not be processed. Please try again.';
+      //   'Permintaan Anda tidak dapat diproses. Silakan coba lagi.';
       // dispatch(error(unsuccessfulOptions));
     } else if (err.response.status === 401) {
-      unsuccessfulOptions.message = 'Unauthorized Access! Please login again';
+      unsuccessfulOptions.message = 'Akses Tidak Diizinkan! Silakan masuk lagi';
       dispatch(signOut());
       dispatch(error(unsuccessfulOptions));
     } else if (err.response.status === 403) {
       unsuccessfulOptions.message =
-        'Forbidden! You are not allowed to access this resource.';
+        'Dilarang! Anda tidak diizinkan mengakses sumber daya ini.';
       dispatch(error(unsuccessfulOptions));
     }
   } else if (err.message) {
@@ -41,7 +41,7 @@ const handleError = (err, dispatch, title = '') => {
   } else {
     // fallback
     unsuccessfulOptions.message =
-      'Your request could not be processed. Please try again.';
+      'Permintaan Anda tidak dapat diproses. Silakan coba lagi.';
   }
 };
 

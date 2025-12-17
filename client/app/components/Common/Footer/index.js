@@ -13,18 +13,18 @@ import Newsletter from '../../../containers/Newsletter';
 
 const Footer = () => {
   const infoLinks = [
-    { id: 0, name: 'Contact Us', to: '/contact' },
-    { id: 1, name: 'Sell With Us', to: '/sell' },
-    { id: 2, name: 'Shipping', to: '/shipping' }
+    { id: 0, name: 'Hubungi Kami', to: '/contact' },
+    { id: 1, name: 'Jual Bersama Kami', to: '/sell' },
+    { id: 2, name: 'Pengiriman', to: '/shipping' }
   ];
 
   const footerBusinessLinks = (
     <ul className='support-links'>
       <li className='footer-link'>
-        <Link to='/dashboard'>Account Details</Link>
+        <Link to='/dashboard'>Detail Akun</Link>
       </li>
       <li className='footer-link'>
-        <Link to='/dashboard/orders'>Orders</Link>
+        <Link to='/dashboard/orders'>Pesanan</Link>
       </li>
     </ul>
   );
@@ -43,7 +43,7 @@ const Footer = () => {
         <div className='footer-content'>
           <div className='footer-block'>
             <div className='block-title'>
-              <h3 className='text-uppercase'>Customer Service</h3>
+              <h3 className='text-uppercase'>Layanan Pelanggan</h3>
             </div>
             <div className='block-content'>
               <ul>{footerLinks}</ul>
@@ -51,7 +51,7 @@ const Footer = () => {
           </div>
           <div className='footer-block'>
             <div className='block-title'>
-              <h3 className='text-uppercase'>Links</h3>
+              <h3 className='text-uppercase'>Tautan</h3>
             </div>
             <div className='block-content'>
               <ul>{footerLinks}</ul>
@@ -59,7 +59,7 @@ const Footer = () => {
           </div>
           <div className='footer-block'>
             <div className='block-title'>
-              <h3 className='text-uppercase'>Newsletter</h3>
+              <h3 className='text-uppercase'>Buletin</h3>
               <Newsletter />
             </div>
           </div>
@@ -67,28 +67,6 @@ const Footer = () => {
         <div className='footer-copyright'>
           <span>© {new Date().getFullYear()} Marsya Store</span>
         </div>
-        <ul className='footer-social-item'>
-          <li>
-            <a href='/#facebook' rel='noreferrer noopener' target='_blank'>
-              <span className='facebook-icon' />
-            </a>
-          </li>
-          <li>
-            <a href='/#instagram' rel='noreferrer noopener' target='_blank'>
-              <span className='instagram-icon' />
-            </a>
-          </li>
-          <li>
-            <a href='/#pinterest' rel='noreferrer noopener' target='_blank'>
-              <span className='pinterest-icon' />
-            </a>
-          </li>
-          <li>
-            <a href='/#twitter' rel='noreferrer noopener' target='_blank'>
-              <span className='twitter-icon' />
-            </a>
-          </li>
-        </ul>
       </Container>
     </footer>
   );

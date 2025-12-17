@@ -1,51 +1,84 @@
 // footer styles
 .footer {
   flex-shrink: 0;
-  border-top: $border-default;
+  background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
+  border-top: 1px solid #e8e8e8;
+  margin-top: 4rem;
+  padding: 3rem 0 0;
+
+  @include media-breakpoint-down(sm) {
+    padding: 2rem 0 0;
+    margin-top: 2rem;
+  }
 }
 
 .footer-content {
   @include flex();
-  padding-top: 20px;
+  padding: 0 0 1.5rem;
   margin: 0 auto;
+  max-width: 1400px;
+  gap: 3rem;
+
+  @include media-breakpoint-down(md) {
+    gap: 2rem;
+    padding: 0 0 1.25rem;
+  }
+
   @include media-breakpoint-down(sm) {
     flex-direction: column;
+    gap: 2rem;
+    padding: 0 0 1rem;
   }
 }
 
 .footer-block {
-  width: 100%;
-  margin-right: 16px;
-  border-right: $border-primary;
-  padding-top: 20px;
-
-  &:last-child {
-    margin-right: 0;
-  }
+  flex: 1;
+  padding: 0;
 
   @include media-breakpoint-down(sm) {
     text-align: center;
-    margin: 10px 0px;
-    border-right: none;
-    border-bottom: $border-primary;
-    padding: 20px 0px;
-  }
-
-  &:last-child {
-    border-right: 0;
-    border-bottom: 0;
+    padding: 0;
   }
 
   .block-title {
-    padding-bottom: 10px;
+    padding-bottom: 1.25rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+
+    h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      letter-spacing: 1px;
+      margin: 0;
+      text-transform: uppercase;
+    }
+  }
+
+  .block-content {
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
   }
 
   .footer-link {
-    padding-bottom: 4px;
+    padding-bottom: 0.75rem;
+    transition: all 0.2s ease;
 
     a {
+      color: #666;
+      font-size: 14px;
+      font-weight: 400;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      display: inline-block;
+
       &:hover {
-        text-decoration: underline !important;
+        color: #1a1a1a !important;
+        transform: translateX(4px);
+        text-decoration: none !important;
       }
     }
   }
@@ -57,52 +90,78 @@
 
 .footer-social-item {
   text-align: center;
-  span,
-  a {
-    display: inline-block;
-    vertical-align: top;
-
-    &:hover {
-      opacity: 0.8;
-    }
-  }
+  padding: 1.5rem 0 1rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 
   li {
-    padding-bottom: 8px;
-    margin: 0 auto;
+    margin: 0;
     display: inline-block;
-    @include media-breakpoint-down(sm) {
-      margin: 0 4px;
+    transition: transform 0.3s ease;
+
+    &:hover {
+      transform: translateY(-3px);
     }
 
     a {
-      margin-left: 10px;
-      @include media-breakpoint-down(sm) {
-        display: block;
-        margin-left: 0px;
-      }
+      display: block;
+      margin: 0;
+      transition: all 0.3s ease;
     }
   }
 
   .facebook-icon {
     @include icon($facebook, 40px, 40px);
     background-size: 100%;
+    border-radius: 50%;
+    background-color: #f5f5f5;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background-color: #1877f2;
+      transform: scale(1.1);
+    }
   }
 
   .instagram-icon {
     @include icon($instagram, 40px, 40px);
     background-size: 100%;
     border-radius: 50%;
+    background-color: #f5f5f5;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+      transform: scale(1.1);
+    }
   }
 
   .pinterest-icon {
     @include icon($pinterest, 40px, 40px);
     background-size: 100%;
+    border-radius: 50%;
+    background-color: #f5f5f5;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background-color: #bd081c;
+      transform: scale(1.1);
+    }
   }
 
   .twitter-icon {
     @include icon($twitter, 40px, 40px);
     background-size: 100%;
+    border-radius: 50%;
+    background-color: #f5f5f5;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background-color: #1da1f2;
+      transform: scale(1.1);
+    }
   }
 }
 
@@ -112,5 +171,11 @@
 
 .footer-copyright {
   text-align: center;
-  padding: 16px 0px;
+  padding: 1.5rem 0;
+  border-top: 1px solid #f0f0f0;
+  background-color: #ffffff;
+  color: #999;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.3px;
 }

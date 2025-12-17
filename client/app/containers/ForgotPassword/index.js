@@ -34,7 +34,7 @@ class ForgotPassword extends React.PureComponent {
 
     return (
       <div className='forgot-password-form'>
-        <h3>Forgot Password</h3>
+        <h3>Lupa Kata Sandi</h3>
         <hr />
         <form onSubmit={handleSubmit}>
           <Row>
@@ -42,9 +42,9 @@ class ForgotPassword extends React.PureComponent {
               <Input
                 type={'text'}
                 error={formErrors['email']}
-                label={'Email Address'}
+                label={'Alamat Email'}
                 name={'email'}
-                placeholder={'Please Enter Your Email'}
+                placeholder={'Masukkan Email Anda'}
                 value={forgotFormData.email}
                 onInputChange={(name, value) => {
                   forgotPasswordChange(name, value);
@@ -57,11 +57,11 @@ class ForgotPassword extends React.PureComponent {
             <Button
               type='submit'
               variant='primary'
-              text='Send Email'
+              text='Kirim Email'
               className='mb-3 mb-md-0'
             />
             <Link className='redirect-link' to={'/login'}>
-              Back to login
+              Kembali ke masuk
             </Link>
           </div>
         </form>

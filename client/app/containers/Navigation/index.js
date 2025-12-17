@@ -127,7 +127,7 @@ class Navigation extends React.PureComponent {
     } = this.props;
 
     const inputProps = {
-      placeholder: 'Search Products',
+      placeholder: 'Cari Produk',
       value: searchValue,
       onChange: (_, { newValue }) => {
         onSearch(newValue);
@@ -219,7 +219,7 @@ class Navigation extends React.PureComponent {
                         onClick={() => this.toggleMenu()}
                         className='nav-link'
                       >
-                        Categories
+                        Kategori
                         <span className='fa fa-chevron-down dropdown-caret'></span>
                       </NavLink>
                     </NavItem>
@@ -230,36 +230,36 @@ class Navigation extends React.PureComponent {
                       to='/shop'
                       activeClassName='active'
                     >
-                      Shop
+                      Belanja
                     </NavLink>
                   </NavItem>
                   {authenticated ? (
                     <UncontrolledDropdown nav inNavbar>
                       <DropdownToggle nav>
-                        {user.firstName ? user.firstName : 'Welcome'}
+                        {user.firstName ? user.firstName : 'Selamat Datang'}
                         <span className='fa fa-chevron-down dropdown-caret'></span>
                       </DropdownToggle>
                       <DropdownMenu right>
                         <DropdownItem
                           onClick={() => history.push('/dashboard')}
                         >
-                          Dashboard
+                          Dasbor
                         </DropdownItem>
-                        <DropdownItem onClick={signOut}>Sign Out</DropdownItem>
+                        <DropdownItem onClick={signOut}>Keluar</DropdownItem>
                       </DropdownMenu>
                     </UncontrolledDropdown>
                   ) : (
                     <UncontrolledDropdown nav inNavbar>
                       <DropdownToggle nav>
-                        Welcome!
+                        Selamat Datang!
                         <span className='fa fa-chevron-down dropdown-caret'></span>
                       </DropdownToggle>
                       <DropdownMenu right>
                         <DropdownItem onClick={() => history.push('/login')}>
-                          Login
+                          Masuk
                         </DropdownItem>
                         <DropdownItem onClick={() => history.push('/register')}>
-                          Sign Up
+                          Daftar
                         </DropdownItem>
                       </DropdownMenu>
                     </UncontrolledDropdown>

@@ -1,5 +1,5 @@
 export const sortOptions = [
-  { value: 0, label: 'Newest First' },
-  { value: 1, label: 'Price High to Low' },
-  { value: 2, label: 'Price Low to High' }
+  { value: 0, label: 'Terbaru' },
+  { value: 1, label: 'Harga Tertinggi ke Terendah' },
+  { value: 2, label: 'Harga Terendah ke Tertinggi' }
 ];

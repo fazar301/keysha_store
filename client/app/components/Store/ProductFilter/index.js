@@ -54,7 +54,7 @@ const rateMarks = {
       </span>
     )
   },
-  100: { label: <span>Any</span> }
+  100: { label: <span>Semua</span> }
 };
 
 const rating = v => {

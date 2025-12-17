@@ -13,8 +13,8 @@ import Input from '../../Common/Input';
 import Button from '../../Common/Button';
 
 const recommedableSelect = [
-  { value: 1, label: 'Yes' },
-  { value: 0, label: 'No' }
+  { value: 1, label: 'Ya' },
+  { value: 0, label: 'Tidak' }
 ];
 
 const Add = props => {
@@ -28,15 +28,15 @@ const Add = props => {
   return (
     <div className='bg-white p-4 box-shadow-primary add-review'>
       <form onSubmit={handleSubmit} noValidate>
-        <h3 className='mb-3'>Add Review</h3>
+        <h3 className='mb-3'>Tambah Ulasan</h3>
         <Row>
           <Col xs='12' md='12'>
             <Input
               type={'text'}
               error={reviewFormErrors['title']}
-              label={'Title'}
+              label={'Judul'}
               name={'title'}
-              placeholder={'Enter Review title'}
+              placeholder={'Masukkan judul ulasan'}
               value={reviewFormData.title}
               onInputChange={(name, value) => {
                 reviewChange(name, value);
@@ -47,9 +47,9 @@ const Add = props => {
             <Input
               type={'textarea'}
               error={reviewFormErrors['review']}
-              label={'Comment'}
+              label={'Komentar'}
               name={'review'}
-              placeholder={'Write Review'}
+              placeholder={'Tulis ulasan'}
               value={reviewFormData.review}
               onInputChange={(name, value) => {
                 reviewChange(name, value);
@@ -71,7 +71,7 @@ const Add = props => {
           <Col xs='12' md='12'>
             <SelectOption
               error={reviewFormErrors['isRecommended']}
-              label={'Will you recommend this product?'}
+              label={'Apakah Anda akan merekomendasikan produk ini?'}
               name={'isRecommended'}
               value={reviewFormData.isRecommended}
               options={recommedableSelect}
@@ -82,7 +82,7 @@ const Add = props => {
           </Col>
         </Row>
         <div className='mt-4'>
-          <Button type='submit' text='Publish Review' />
+          <Button type='submit' text='Publikasikan Ulasan' />
         </div>
       </form>
     </div>

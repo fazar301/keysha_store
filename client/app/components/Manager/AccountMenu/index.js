@@ -26,13 +26,13 @@ const AccountMenu = props => {
   return (
     <div className='panel-sidebar'>
       <Button
-        text='Dashboard Menu'
+        text='Menu Dasbor'
         className={`${isMenuOpen ? 'menu-panel' : 'menu-panel collapse'}`}
         ariaExpanded={isMenuOpen ? 'true' : 'false'}
         // ariaLabel={isMenuOpen ? 'dashboard menu expanded' : 'dashboard menu collapse'}
         onClick={toggleMenu}
       />
-      <h3 className='panel-title'>Account</h3>
+      <h3 className='panel-title'>Akun</h3>
       <Navbar color='light' light expand='md'>
         <Collapse isOpen={isMenuOpen} navbar>
           <ul className='panel-links'>

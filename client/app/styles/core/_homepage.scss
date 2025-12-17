@@ -1,4 +1,18 @@
 .homepage {
+    background-color: #ffffff;
+    padding-bottom: 4rem;
+    min-height: 100vh;
+
+    .homepage-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+
+        @media (max-width: 768px) {
+            padding: 0 1rem;
+        }
+    }
+
     .homepage-carousel-wrapper {
         width: 100vw;
         position: relative;
@@ -6,7 +20,9 @@
         right: 50%;
         margin-left: -50vw;
         margin-right: -50vw;
-        margin-bottom: 3rem;
+        margin-bottom: 5rem;
+        overflow: hidden;
+        background-color: #fafafa;
 
         .homepage-carousel {
             width: 100%;
@@ -21,10 +37,12 @@
                     height: auto;
                     display: block;
                     object-fit: cover;
-                    max-height: 600px;
+                    max-height: 70vh;
+                    min-height: 450px;
 
                     @media (max-width: 768px) {
-                        max-height: 400px;
+                        max-height: 50vh;
+                        min-height: 300px;
                     }
                 }
             }
@@ -32,25 +50,49 @@
     }
 
     .homepage-section {
-        margin-bottom: 4rem;
+        margin-bottom: 6rem;
+        padding: 0;
 
         &:last-child {
-            margin-bottom: 2rem;
+            margin-bottom: 3rem;
         }
 
         .section-header {
-            margin-bottom: 2rem;
+            margin-bottom: 3.5rem;
             text-align: center;
+            padding-bottom: 1.5rem;
+            position: relative;
 
             .section-title {
-                font-size: 2rem;
-                font-weight: 600;
+                font-size: 2.5rem;
+                font-weight: 700;
                 margin: 0;
                 text-transform: uppercase;
-                letter-spacing: 1px;
+                letter-spacing: 3px;
+                color: #1a1a1a;
+                position: relative;
+                display: inline-block;
+                padding-bottom: 1rem;
+
+                &::after {
+                    content: '';
+                    position: absolute;
+                    bottom: 0;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    width: 80px;
+                    height: 3px;
+                    background-color: #1a1a1a;
+                }
 
                 @media (max-width: 768px) {
-                    font-size: 1.5rem;
+                    font-size: 1.75rem;
+                    letter-spacing: 2px;
+                    
+                    &::after {
+                        width: 60px;
+                        height: 2px;
+                    }
                 }
             }
         }
@@ -70,7 +112,7 @@
 
         @media (min-width: 992px) {
             grid-template-columns: repeat(4, 1fr) !important;
-            grid-gap: 1.5rem !important;
+            grid-gap: 2rem !important;
         }
     }
 }

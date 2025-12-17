@@ -63,20 +63,22 @@ const ProductList = props => {
                       <p className='item-desc mb-0'>{product.description}</p>
                     </div>
                   </div>
-                  <div className='d-flex flex-row justify-content-between align-items-center px-4 mb-2 item-footer'>
-                    <p className='price mb-0'>{formatIDR(product.price)}</p>
-                    {product.totalReviews > 0 && (
-                      <p className='mb-0'>
-                        <span className='fs-16 fw-normal mr-1'>
-                          {parseFloat(product?.averageRating).toFixed(1)}
-                        </span>
-                        <span
-                          className={`fa fa-star ${product.totalReviews !== 0 ? 'checked' : ''
-                            }`}
-                          style={{ color: '#ffb302' }}
-                        ></span>
-                      </p>
-                    )}
+                  <div className='item-footer'>
+                    <div className='d-flex flex-row justify-content-between align-items-center mb-2'>
+                      <p className='price mb-0'>{formatIDR(product.price)}</p>
+                      {product.totalReviews > 0 && (
+                        <div className='d-flex align-items-center'>
+                          <span className='mr-1' style={{ fontSize: '14px', fontWeight: 500 }}>
+                            {parseFloat(product?.averageRating).toFixed(1)}
+                          </span>
+                          <span
+                            className={`fa fa-star ${product.totalReviews !== 0 ? 'checked' : ''
+                              }`}
+                            style={{ color: '#ffb302', fontSize: '14px' }}
+                          ></span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </Link>
               </div>

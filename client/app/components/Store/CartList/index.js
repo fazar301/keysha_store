@@ -59,7 +59,7 @@ const CartList = props => {
               </Row>
               <Row className='mb-2 align-items-center'>
                 <Col xs='9'>
-                  <p className='item-label'>price</p>
+                  <p className='item-label'>Harga</p>
                 </Col>
                 <Col xs='3' className='text-right'>
                   <p className='value price'>{formatIDR(item?.totalPrice)}</p>
@@ -67,7 +67,7 @@ const CartList = props => {
               </Row>
               <Row className='mb-2 align-items-center'>
                 <Col xs='9'>
-                  <p className='item-label'>quantity</p>
+                  <p className='item-label'>Jumlah</p>
                 </Col>
                 <Col xs='3' className='text-right'>
                   <p className='value quantity'>{` ${item.quantity}`}</p>

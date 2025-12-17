@@ -42,8 +42,8 @@ export const handleAddToCart = product => {
     };
 
     const { isValid, errors } = allFieldsValidation(product, rules, {
-      'min.quantity': 'Quantity must be at least 1.',
-      'max.quantity': `Quantity may not be greater than ${result}.`
+      'min.quantity': 'Jumlah harus minimal 1.',
+      'max.quantity': `Jumlah tidak boleh lebih dari ${result}.`
     });
 
     if (!isValid) {

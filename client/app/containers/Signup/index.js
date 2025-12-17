@@ -42,7 +42,7 @@ class Signup extends React.PureComponent {
     return (
       <div className='signup-form'>
         {isLoading && <LoadingIndicator />}
-        <h2>Sign Up</h2>
+        <h2>Daftar</h2>
         <hr />
         <form onSubmit={handleSubmit} noValidate>
           <Row>
@@ -55,9 +55,9 @@ class Signup extends React.PureComponent {
                 <Input
                   type={'text'}
                   error={formErrors['email']}
-                  label={'Email Address'}
+                  label={'Alamat Email'}
                   name={'email'}
-                  placeholder={'Please Enter Your Email'}
+                  placeholder={'Masukkan Email Anda'}
                   value={signupFormData.email}
                   onInputChange={(name, value) => {
                     signupChange(name, value);
@@ -68,9 +68,9 @@ class Signup extends React.PureComponent {
                 <Input
                   type={'text'}
                   error={formErrors['firstName']}
-                  label={'First Name'}
+                  label={'Nama Depan'}
                   name={'firstName'}
-                  placeholder={'Please Enter Your First Name'}
+                  placeholder={'Masukkan Nama Depan Anda'}
                   value={signupFormData.firstName}
                   onInputChange={(name, value) => {
                     signupChange(name, value);
@@ -81,9 +81,9 @@ class Signup extends React.PureComponent {
                 <Input
                   type={'text'}
                   error={formErrors['lastName']}
-                  label={'Last Name'}
+                  label={'Nama Belakang'}
                   name={'lastName'}
-                  placeholder={'Please Enter Your Last Name'}
+                  placeholder={'Masukkan Nama Belakang Anda'}
                   value={signupFormData.lastName}
                   onInputChange={(name, value) => {
                     signupChange(name, value);
@@ -93,10 +93,10 @@ class Signup extends React.PureComponent {
               <Col xs='12' md='12'>
                 <Input
                   type={'password'}
-                  label={'Password'}
+                  label={'Kata Sandi'}
                   error={formErrors['password']}
                   name={'password'}
-                  placeholder={'Please Enter Your Password'}
+                  placeholder={'Masukkan Kata Sandi Anda'}
                   value={signupFormData.password}
                   onInputChange={(name, value) => {
                     signupChange(name, value);
@@ -115,7 +115,7 @@ class Signup extends React.PureComponent {
           <hr />
           <Checkbox
             id={'subscribe'}
-            label={'Subscribe to newsletter'}
+            label={'Berlangganan buletin'}
             checked={isSubscribed}
             onChange={subscribeChange}
           />
@@ -123,11 +123,11 @@ class Signup extends React.PureComponent {
             <Button
               type='submit'
               variant='primary'
-              text='Sign Up'
+              text='Daftar'
               disabled={isSubmitting}
             />
             <Link className='mt-3 mt-md-0 redirect-link' to={'/login'}>
-              Back to login
+              Kembali ke masuk
             </Link>
           </div>
         </form>

@@ -1,23 +1,89 @@
 .newsletter-form {
+  margin-top: 1rem;
+
   p {
-    margin: 0;
+    margin: 0 0 1rem 0;
+    font-size: 13px;
+    color: #666;
+    font-weight: 400;
+    line-height: 1.5;
   }
 }
 
 .subscribe {
   .inline-btn-box {
     .input-text-block {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+
       @include media-breakpoint-between(md, lg) {
         flex-direction: column;
+        gap: 0.75rem;
 
         .input-text {
-          border-radius: $border-radius-default;
+          border-radius: 8px;
+          width: 100%;
         }
 
         .custom-btn-primary {
-          margin-top: 10px;
-          border-left: $border-default !important;
-          border-radius: $border-radius-default !important;
+          margin-top: 0;
+          border-left: 1px solid #1a1a1a !important;
+          border-radius: 8px !important;
+          width: 100%;
+          color: #ffffff !important;
+
+          .btn-text {
+            color: #ffffff !important;
+          }
+        }
+      }
+
+      .input-text {
+        flex: 1;
+        min-width: 200px;
+        border-radius: 8px 0 0 8px;
+        border: 1px solid #e4e6eb;
+        padding: 10px 16px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+
+        &:focus {
+          border-color: #bdcbd2;
+          box-shadow: 0 0 0 3px rgba(189, 203, 210, 0.1);
+          outline: none;
+        }
+
+        &::placeholder {
+          color: #999;
+        }
+      }
+
+      .custom-btn-primary {
+        border-radius: 0 8px 8px 0;
+        padding: 10px 24px;
+        font-weight: 600;
+        font-size: 14px;
+        background-color: #1a1a1a;
+        border: 1px solid #1a1a1a;
+        color: #ffffff !important;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+
+        .btn-text {
+          color: #ffffff !important;
+        }
+
+        &:hover {
+          background-color: #2a2a2a;
+          border-color: #2a2a2a;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          color: #ffffff !important;
+
+          .btn-text {
+            color: #ffffff !important;
+          }
         }
       }
     }

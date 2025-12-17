@@ -30,7 +30,7 @@ const AccountDetails = props => {
               user.email
             ) : (
               <span className='provider-email'>
-                Logged in With {user.provider}
+                Masuk dengan {user.provider}
               </span>
             )}
           </p>
@@ -42,9 +42,9 @@ const AccountDetails = props => {
           <Col xs='12' md='6'>
             <Input
               type={'text'}
-              label={'First Name'}
+              label={'Nama Depan'}
               name={'firstName'}
-              placeholder={'Please Enter Your First Name'}
+              placeholder={'Masukkan Nama Depan Anda'}
               value={user.firstName ? user.firstName : ''}
               onInputChange={(name, value) => {
                 accountChange(name, value);
@@ -54,9 +54,9 @@ const AccountDetails = props => {
           <Col xs='12' md='6'>
             <Input
               type={'text'}
-              label={'Last Name'}
+              label={'Nama Belakang'}
               name={'lastName'}
-              placeholder={'Please Enter Your Last Name'}
+              placeholder={'Masukkan Nama Belakang Anda'}
               value={user.lastName ? user.lastName : ''}
               onInputChange={(name, value) => {
                 accountChange(name, value);
@@ -69,7 +69,7 @@ const AccountDetails = props => {
               type={'text'}
               label={'Email'}
               name={'email'}
-              placeholder={'Please Enter Your Email'}
+              placeholder={'Masukkan Email Anda'}
               value={user.email ? user.email : ''}
               onInputChange={(name, value) => {
                 accountChange(name, value);
@@ -79,9 +79,9 @@ const AccountDetails = props => {
           <Col xs='12' md='12'>
             <Input
               type={'text'}
-              label={'Phone Number'}
+              label={'Nomor Telepon'}
               name={'phoneNumber'}
-              placeholder={'Please Enter Your Phone Number'}
+              placeholder={'Masukkan Nomor Telepon Anda'}
               value={user.phoneNumber ? user.phoneNumber : ''}
               onInputChange={(name, value) => {
                 accountChange(name, value);
@@ -91,7 +91,7 @@ const AccountDetails = props => {
         </Row>
         <hr />
         <div className='profile-actions'>
-          <Button type='submit' variant='secondary' text='Save changes' />
+          <Button type='submit' variant='secondary' text='Simpan Perubahan' />
         </div>
       </form>
     </div>

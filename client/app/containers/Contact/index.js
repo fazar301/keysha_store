@@ -26,7 +26,7 @@ class Contact extends React.PureComponent {
 
     return (
       <div className='contact'>
-        <h3 className='text-uppercase'>Contact Information</h3>
+        <h3 className='text-uppercase'>Informasi Kontak</h3>
         <hr />
         <form onSubmit={handleSubmit}>
           <Row>
@@ -34,9 +34,9 @@ class Contact extends React.PureComponent {
               <Input
                 type={'text'}
                 error={formErrors['name']}
-                label={'Name'}
+                label={'Nama'}
                 name={'name'}
-                placeholder={'You Full Name'}
+                placeholder={'Nama Lengkap Anda'}
                 value={contactFormData.name}
                 onInputChange={(name, value) => {
                   contactFormChange(name, value);
@@ -49,7 +49,7 @@ class Contact extends React.PureComponent {
                 error={formErrors['email']}
                 label={'Email'}
                 name={'email'}
-                placeholder={'Your Email Address'}
+                placeholder={'Alamat Email Anda'}
                 value={contactFormData.email}
                 onInputChange={(name, value) => {
                   contactFormChange(name, value);
@@ -60,9 +60,9 @@ class Contact extends React.PureComponent {
               <Input
                 type={'textarea'}
                 error={formErrors['message']}
-                label={'Message'}
+                label={'Pesan'}
                 name={'message'}
-                placeholder={'Please Describe Your Message'}
+                placeholder={'Jelaskan Pesan Anda'}
                 value={contactFormData.message}
                 onInputChange={(name, value) => {
                   contactFormChange(name, value);
@@ -72,7 +72,7 @@ class Contact extends React.PureComponent {
           </Row>
           <hr />
           <div className='contact-actions'>
-            <Button type='submit' text='Submit' />
+            <Button type='submit' text='Kirim' />
           </div>
         </form>
       </div>

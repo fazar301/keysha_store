@@ -28,14 +28,14 @@ const OrderSummary = props => {
 
   return (
     <Col className='order-summary pt-3'>
-      <h2>Order Summary</h2>
+      <h2>Ringkasan Pesanan</h2>
       <div className='d-flex align-items-center summary-item'>
         <p className='summary-label'>Subtotal</p>
         <p className='summary-value ml-auto'>{formatIDR(subtotal)}</p>
       </div>
 
       <div className='d-flex align-items-center summary-item'>
-        <p className='summary-label'>Shipping & Handling</p>
+        <p className='summary-label'>Pengiriman & Penanganan</p>
         <p className='summary-value ml-auto'>{formatIDR(shippingCost)}</p>
       </div>
 

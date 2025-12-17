@@ -36,7 +36,7 @@ class ProductsShop extends React.PureComponent {
           />
         )}
         {!isLoading && !displayProducts && (
-          <NotFound message='No products found.' />
+          <NotFound message='Produk tidak ditemukan.' />
         )}
       </div>
     );

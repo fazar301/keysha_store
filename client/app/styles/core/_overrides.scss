@@ -120,19 +120,38 @@ hr {
   }
 
   .carousel-dot-list-style {
+    bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+
     .react-multi-carousel-dot {
       button {
-        border-color: $border-color-primary;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        border: none;
+        background-color: rgba(255, 255, 255, 0.5);
+        padding: 0;
+        margin: 0;
+        transition: all 0.3s ease;
 
         &:focus {
           outline: none;
+        }
+
+        &:hover {
+          background-color: rgba(255, 255, 255, 0.8);
         }
       }
     }
 
     .react-multi-carousel-dot--active {
       button {
-        background-color: $secondary-bg;
+        background-color: #ffffff;
+        width: 10px;
+        height: 10px;
       }
     }
   }

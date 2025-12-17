@@ -59,7 +59,7 @@ class Homepage extends React.PureComponent {
           </div>
         </div>
 
-        <Container>
+        <Container className='homepage-container'>
           {/* New Arrivals Section */}
           <div className='homepage-section'>
             <div className='section-header'>

@@ -29,9 +29,9 @@ const EditAddress = props => {
             <Input
               type={'text'}
               error={formErrors['address']}
-              label={'Address'}
+              label={'Alamat'}
               name={'address'}
-              placeholder={'Address: Street, House No / Apartment No'}
+              placeholder={'Alamat: Jalan, Nomor Rumah / Nomor Apartemen'}
               value={address.address}
               onInputChange={(name, value) => {
                 addressChange(name, value);
@@ -42,9 +42,9 @@ const EditAddress = props => {
             <Input
               type={'text'}
               error={formErrors['city']}
-              label={'City'}
+              label={'Kota'}
               name={'city'}
-              placeholder={'City'}
+              placeholder={'Kota'}
               value={address.city}
               onInputChange={(name, value) => {
                 addressChange(name, value);
@@ -55,9 +55,9 @@ const EditAddress = props => {
             <Input
               type={'text'}
               error={formErrors['state']}
-              label={'State'}
+              label={'Provinsi'}
               name={'state'}
-              placeholder={'State'}
+              placeholder={'Provinsi'}
               value={address.state}
               onInputChange={(name, value) => {
                 addressChange(name, value);
@@ -68,9 +68,9 @@ const EditAddress = props => {
             <Input
               type={'text'}
               error={formErrors['country']}
-              label={'Country'}
+              label={'Negara'}
               name={'country'}
-              placeholder={'Please Enter Your Country'}
+              placeholder={'Masukkan Negara Anda'}
               value={address.country}
               onInputChange={(name, value) => {
                 addressChange(name, value);
@@ -81,9 +81,9 @@ const EditAddress = props => {
             <Input
               type={'text'}
               error={formErrors['zipCode']}
-              label={'Zipcode'}
+              label={'Kode POS'}
               name={'zipCode'}
-              placeholder={'Please Enter Your Zipcode'}
+              placeholder={'Masukkan Kode POS Anda'}
               value={address.zipCode}
               onInputChange={(name, value) => {
                 addressChange(name, value);
@@ -93,7 +93,7 @@ const EditAddress = props => {
           <Col xs='12' md='12'>
             <Checkbox
               id={'default'}
-              label={'As the Default'}
+              label={'Sebagai Default'}
               name={'isDefault'}
               checked={address.isDefault}
               onChange={(name, value) => {
@@ -106,12 +106,12 @@ const EditAddress = props => {
         <div className='d-flex flex-column flex-md-row'>
           <Button
             type='submit'
-            text='Save'
+            text='Simpan'
             className='mb-3 mb-md-0 mr-0 mr-md-3'
           />
           <Button
             variant='danger'
-            text='Delete'
+            text='Hapus'
             onClick={() => deleteAddress(address._id)}
           />
         </div>
