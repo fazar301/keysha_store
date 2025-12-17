@@ -232,36 +232,43 @@
   .tracking-history {
     .timeline {
       position: relative;
-      padding-left: 30px;
-
-      &::before {
-        content: '';
-        position: absolute;
-        left: 8px;
-        top: 0;
-        bottom: 0;
-        width: 2px;
-        background-color: #dee2e6;
-      }
+      padding-left: 50px; // Tambah padding untuk jarak antara line/indikator dengan card
 
       .timeline-item {
         position: relative;
         margin-bottom: 20px;
+        min-height: 60px; // Minimum height untuk alignment
 
         &:last-child {
           margin-bottom: 0;
         }
 
+        // Line vertikal - hanya untuk item yang bukan terakhir
+        // Line dimulai dari tengah item saat ini sampai tengah item berikutnya
+        &:not(:last-child)::after {
+          content: '';
+          position: absolute;
+          left: 8px; // Posisi yang sama dengan marker center
+          top: 50%; // Mulai dari tengah card saat ini
+          height: calc(100% + 20px); // Panjang line sampai tengah item berikutnya (100% + margin-bottom)
+          width: 2px;
+          background-color: #dee2e6;
+          z-index: 0;
+          transform: translateX(-50%); // Center horizontal agar tepat di tengah marker
+        }
+
         .timeline-marker {
           position: absolute;
-          left: -22px;
-          top: 4px;
+          left: 8px; // Posisi center marker (sama dengan line center)
+          top: 50%;
+          transform: translateY(-50%) translateX(-50%); // Center vertical dan horizontal
           width: 12px;
           height: 12px;
           border-radius: 50%;
-          background-color: #007bff;
+          background-color: #6c757d; // Default gray untuk status lama
           border: 2px solid #fff;
-          box-shadow: 0 0 0 2px #007bff;
+          box-shadow: 0 0 0 2px #6c757d;
+          z-index: 2; // Di atas line
         }
 
         .timeline-content {
@@ -270,6 +277,11 @@
           border-radius: $border-radius-default;
           padding: 15px;
           box-shadow: $box-shadow-secondary;
+          min-height: 60px; // Minimum height untuk alignment
+          display: flex;
+          flex-direction: column;
+          justify-content: center; // Center content vertically
+          margin-left: 20px; // Jarak antara line/indikator dengan card (di luar card)
 
           strong {
             color: $font-custom-color;
@@ -282,7 +294,8 @@
           }
         }
 
-        &:first-child .timeline-marker {
+        // Indikator aktif pada status terakhir (bukan yang pertama)
+        &:last-child .timeline-marker {
           background-color: #28a745;
           box-shadow: 0 0 0 2px #28a745;
         }

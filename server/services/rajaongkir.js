@@ -239,9 +239,75 @@ class RajaOngkirService {
         const endpoint = '/order/api/v1/orders/history-airway-bill';
 
         try {
-            // Normalize courier name untuk API Komerce
-            // API mengharapkan format lowercase tanpa spasi
-            const normalizedCourier = courier.toLowerCase().trim().replace(/\s+/g, '');
+            // Validasi AWB
+            if (!airwayBill || airwayBill.trim() === '') {
+                return {
+                    success: false,
+                    error: 'AWB number is required'
+                };
+            }
+
+            // Validasi format AWB (biasanya format KOMERKOM... atau alphanumeric)
+            const cleanAWB = airwayBill.trim();
+            
+            // AWB biasanya minimal 10 karakter dan alphanumeric
+            if (cleanAWB.length < 10) {
+                return {
+                    success: false,
+                    error: `AWB number terlalu pendek: "${cleanAWB}". AWB biasanya minimal 10 karakter.`
+                };
+            }
+
+            // Map courier ke format yang diharapkan API Komerce
+            // API tracking mengharapkan format lowercase sederhana (jne, pos, tiki, dll)
+            const mapCourierForTracking = (courierName) => {
+                if (!courierName) return 'jne'; // Default
+
+                const courierLower = courierName.toLowerCase().trim();
+                
+                // Mapping courier codes ke format tracking API
+                const courierMap = {
+                    'jne': 'jne',
+                    'pos': 'pos',
+                    'pos indonesia': 'pos',
+                    'tiki': 'tiki',
+                    'sicepat': 'sicepat',
+                    'jnt': 'jnt',
+                    'j&t': 'jnt',
+                    'jnt express': 'jnt',
+                    'ninja': 'ninja',
+                    'ninja express': 'ninja',
+                    'lion': 'lion',
+                    'lion parcel': 'lion',
+                    'anteraja': 'anteraja',
+                    'rex': 'rex',
+                    'rpx': 'rpx',
+                    'sentral': 'sentral',
+                    'star': 'star',
+                    'wahana': 'wahana',
+                    'dse': 'dse',
+                    'idexpress': 'idexpress',
+                    'id express': 'idexpress',
+                    'sap': 'sap',
+                    'gosend': 'gosend'
+                };
+
+                // Cek apakah courier ada di map
+                if (courierMap[courierLower]) {
+                    return courierMap[courierLower];
+                }
+
+                // Jika tidak ada di map, coba extract code dari name
+                const extractedCode = courierLower.split(' ')[0];
+                if (courierMap[extractedCode]) {
+                    return courierMap[extractedCode];
+                }
+
+                // Jika masih tidak ditemukan, gunakan lowercase dari input (remove spaces)
+                return courierLower.replace(/\s+/g, '');
+            };
+
+            const normalizedCourier = mapCourierForTracking(courier);
 
             // Gunakan SHIPPING_DELIVERY_API_KEY untuk tracking (sama dengan store order dan print label)
             const deliveryApiKey = SHIPPING_DELIVERY_API_KEY || this.apiKey;
@@ -255,11 +321,17 @@ class RajaOngkirService {
                 },
                 params: {
                     shipping: normalizedCourier,
-                    airway_bill: airwayBill
+                    airway_bill: cleanAWB
                 }
             };
 
-            console.log('Tracking request:', { courier: normalizedCourier, airwayBill, url: config.url });
+            console.log('Tracking request:', { 
+                originalCourier: courier,
+                normalizedCourier: normalizedCourier, 
+                airwayBill: cleanAWB, 
+                url: config.url,
+                params: config.params
+            });
 
             const response = await axios(config);
 
@@ -300,14 +372,45 @@ class RajaOngkirService {
                 error: 'No data received from API'
             };
         } catch (error) {
-            console.error('RajaOngkir Tracking API Error:', error.response?.data || error.message);
-            const errorMessage = error.response?.data?.meta?.message ||
-                error.response?.data?.error ||
-                error.message ||
-                'Failed to connect to RajaOngkir Tracking API';
+            console.error('RajaOngkir Tracking API Error:', {
+                url: `${KOMERCE_ORDER_API_URL}${endpoint}`,
+                courier: courier,
+                airwayBill: airwayBill,
+                status: error.response?.status,
+                statusText: error.response?.statusText,
+                data: error.response?.data,
+                message: error.message
+            });
+            
+            // Extract error message dengan lebih detail
+            let errorMessage = 'Failed to connect to RajaOngkir Tracking API';
+            
+            if (error.response?.data) {
+                if (error.response.data.meta?.message) {
+                    errorMessage = error.response.data.meta.message;
+                } else if (error.response.data.error) {
+                    errorMessage = error.response.data.error;
+                } else if (error.response.data.message) {
+                    errorMessage = error.response.data.message;
+                } else if (typeof error.response.data === 'string') {
+                    errorMessage = error.response.data;
+                }
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
+            // Berikan saran jika error terkait invalid AWB
+            if (errorMessage.toLowerCase().includes('invalid') || 
+                errorMessage.toLowerCase().includes('not found') ||
+                errorMessage.toLowerCase().includes('cnote')) {
+                errorMessage = 'AWB belum tersedia di sistem tracking. Ini biasanya terjadi karena: 1) Paket belum di-pickup oleh kurir, 2) AWB belum aktif di sistem kurir (butuh waktu beberapa saat setelah generate label), atau 3) AWB number tidak valid. Silakan coba lagi setelah beberapa saat atau pastikan paket sudah di-pickup.';
+            }
+            
             return {
                 success: false,
-                error: errorMessage
+                error: errorMessage,
+                details: error.response?.data || null,
+                status: error.response?.status
             };
         }
     }
@@ -452,9 +555,20 @@ class RajaOngkirService {
                 }
             };
 
-            console.log('Print Label request:', { endpoint: config.url, orderId });
+            console.log('Print Label request:', { 
+                endpoint: config.url, 
+                orderNo, 
+                page,
+                params: config.params,
+                isSandbox: USE_SANDBOX
+            });
 
             const response = await axios(config);
+
+            console.log('Print Label response:', {
+                status: response.status,
+                data: response.data
+            });
 
             // API Komerce menggunakan format response dengan meta dan data
             if (response.data) {
@@ -467,11 +581,31 @@ class RajaOngkirService {
                             data: response.data.data || {}
                         };
                     } else {
+                        // Berikan error message yang lebih detail
+                        const errorMsg = meta.message || 'API request failed';
+                        console.error('Print Label failed:', {
+                            code: meta.code,
+                            status: meta.status,
+                            message: errorMsg,
+                            orderNo: orderNo
+                        });
                         return {
                             success: false,
-                            error: meta.message || 'API request failed'
+                            error: errorMsg,
+                            code: meta.code,
+                            details: response.data.data || null
                         };
                     }
+                }
+
+                // Fallback untuk format response lain
+                if (response.data.success === false || response.data.error) {
+                    console.error('Print Label failed (fallback):', response.data);
+                    return {
+                        success: false,
+                        error: response.data.error || response.data.message || 'Failed to print label',
+                        details: response.data.data || null
+                    };
                 }
 
                 return {
@@ -485,14 +619,183 @@ class RajaOngkirService {
                 error: 'No data received from API'
             };
         } catch (error) {
-            console.error('RajaOngkir Print Label API Error:', error.response?.data || error.message);
-            const errorMessage = error.response?.data?.meta?.message ||
-                error.response?.data?.error ||
-                error.message ||
-                'Failed to print label from RajaOngkir API';
+            console.error('RajaOngkir Print Label API Error:', {
+                url: `${KOMERCE_ORDER_API_URL}${endpoint}`,
+                orderNo: orderNo,
+                page: page,
+                status: error.response?.status,
+                statusText: error.response?.statusText,
+                data: error.response?.data,
+                message: error.message
+            });
+            
+            // Extract error message dengan lebih detail
+            let errorMessage = 'Failed to print label from RajaOngkir API';
+            
+            if (error.response?.data) {
+                if (error.response.data.meta?.message) {
+                    errorMessage = error.response.data.meta.message;
+                } else if (error.response.data.error) {
+                    errorMessage = error.response.data.error;
+                } else if (error.response.data.message) {
+                    errorMessage = error.response.data.message;
+                } else if (typeof error.response.data === 'string') {
+                    errorMessage = error.response.data;
+                }
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
             return {
                 success: false,
-                error: errorMessage
+                error: errorMessage,
+                details: error.response?.data || null,
+                status: error.response?.status
+            };
+        }
+    }
+
+    /**
+     * Schedule Pickup Order
+     * API Komerce endpoint: /order/api/v1/pickup/request
+     * @param {String} orderNo - Order number dari Komerce
+     * @param {String} pickupDate - Tanggal pickup (YYYY-MM-DD)
+     * @param {String} pickupTime - Waktu pickup (HH:MM)
+     * @param {String} pickupVehicle - Jenis kendaraan (Motor/Mobil/Truk)
+     */
+    async schedulePickup(orderNo, pickupDate, pickupTime, pickupVehicle = 'Motor') {
+        const endpoint = '/order/api/v1/pickup/request';
+
+        try {
+            // Gunakan SHIPPING_DELIVERY_API_KEY untuk schedule pickup
+            const deliveryApiKey = SHIPPING_DELIVERY_API_KEY || this.apiKey;
+
+            if (!deliveryApiKey) {
+                return {
+                    success: false,
+                    error: 'SHIPPING_DELIVERY_API_KEY is required for schedule pickup. Please set it in environment variables.'
+                };
+            }
+
+            const config = {
+                method: 'POST',
+                url: `${KOMERCE_ORDER_API_URL}${endpoint}`,
+                headers: {
+                    'x-api-key': deliveryApiKey,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                data: {
+                    pickup_date: pickupDate,
+                    pickup_time: pickupTime,
+                    pickup_vehicle: pickupVehicle,
+                    orders: [
+                        {
+                            order_no: orderNo
+                        }
+                    ]
+                }
+            };
+
+            console.log('Schedule Pickup request:', {
+                endpoint: config.url,
+                orderNo: orderNo,
+                pickupDate: pickupDate,
+                pickupTime: pickupTime,
+                pickupVehicle: pickupVehicle,
+                isSandbox: USE_SANDBOX
+            });
+
+            const response = await axios(config);
+
+            console.log('Schedule Pickup response:', {
+                status: response.status,
+                data: response.data
+            });
+
+            // API Komerce menggunakan format response dengan meta dan data
+            if (response.data) {
+                if (response.data.meta) {
+                    const meta = response.data.meta;
+
+                    if (meta.status === 'success' && (meta.code === 200 || meta.code === 201)) {
+                        // Cek status dari data array
+                        const pickupData = Array.isArray(response.data.data) ? response.data.data[0] : response.data.data;
+                        
+                        if (pickupData && pickupData.status === 'success') {
+                            return {
+                                success: true,
+                                data: pickupData,
+                                awb: pickupData.awb || null
+                            };
+                        } else {
+                            // Pickup request dibuat tapi status failed
+                            return {
+                                success: false,
+                                error: `Pickup request failed for order ${orderNo}`,
+                                details: pickupData || response.data.data
+                            };
+                        }
+                    } else {
+                        return {
+                            success: false,
+                            error: meta.message || 'Failed to schedule pickup',
+                            code: meta.code,
+                            details: response.data.data || null
+                        };
+                    }
+                }
+
+                // Fallback untuk format response lain
+                if (response.data.success === false || response.data.error) {
+                    return {
+                        success: false,
+                        error: response.data.error || response.data.message || 'Failed to schedule pickup',
+                        details: response.data.data || null
+                    };
+                }
+
+                return {
+                    success: true,
+                    data: response.data.data || response.data
+                };
+            }
+
+            return {
+                success: false,
+                error: 'No data received from API'
+            };
+        } catch (error) {
+            console.error('RajaOngkir Schedule Pickup API Error:', {
+                url: `${KOMERCE_ORDER_API_URL}${endpoint}`,
+                orderNo: orderNo,
+                status: error.response?.status,
+                statusText: error.response?.statusText,
+                data: error.response?.data,
+                message: error.message
+            });
+
+            let errorMessage = 'Failed to schedule pickup from RajaOngkir API';
+
+            if (error.response?.data) {
+                if (error.response.data.meta?.message) {
+                    errorMessage = error.response.data.meta.message;
+                } else if (error.response.data.error) {
+                    errorMessage = error.response.data.error;
+                } else if (error.response.data.message) {
+                    errorMessage = error.response.data.message;
+                } else if (typeof error.response.data === 'string') {
+                    errorMessage = error.response.data;
+                }
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+
+            return {
+                success: false,
+                error: errorMessage,
+                details: error.response?.data || null,
+                status: error.response?.status
             };
         }
     }

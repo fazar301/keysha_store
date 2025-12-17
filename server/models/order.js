@@ -92,6 +92,10 @@ const OrderSchema = new Schema({
       type: String,
       default: ''
     },
+    komerceOrderNo: {
+      type: String,
+      default: ''
+    },
     labelPrintedAt: {
       type: Date
     }

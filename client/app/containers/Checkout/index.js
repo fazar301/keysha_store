@@ -463,8 +463,10 @@ class Checkout extends React.PureComponent {
     const total = Math.round(subtotal + shippingCost - discountAmount);
 
     // Prepare shipping info untuk disimpan di order
+    // Gunakan courier code dari id (bukan name) untuk kompatibilitas dengan API Komerce
+    const courierCode = shipping.id?.split('_')[0] || shipping.courier?.toLowerCase() || '';
     const shippingInfo = {
-      courier: shipping.courier || shipping.id?.split('_')[0] || '',
+      courier: courierCode, // Simpan courier code, bukan name
       service: shipping.service || shipping.id?.split('_')[1] || '',
       cost: shippingCost
     };

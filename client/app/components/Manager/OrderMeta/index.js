@@ -17,8 +17,20 @@ const OrderMeta = props => {
   const { order, user, cancelOrder, generateLabel, retryLabel, onBack } = props;
 
   const isAdminOrMerchant = user?.role === ROLES.Admin || user?.role === ROLES.Merchant;
+  const isAdmin = user?.role === ROLES.Admin;
   const hasAWB = order.shipping?.airwayBill;
   const hasKomerceOrderId = order.shipping?.komerceOrderId;
+  const hasKomerceOrderNo = order.shipping?.komerceOrderNo;
+  
+  // Debug logging (hanya di development)
+  if (process.env.NODE_ENV === 'development' && isAdmin) {
+    console.log('OrderMeta Debug:', {
+      isAdmin,
+      hasKomerceOrderNo,
+      komerceOrderNo: order.shipping?.komerceOrderNo,
+      shipping: order.shipping
+    });
+  }
 
   const handleGenerateLabel = () => {
     if (generateLabel) {
@@ -103,6 +115,19 @@ const OrderMeta = props => {
               <Col xs='8'>
                 <span className='order-label one-line-ellipsis'>
                   <code>{order.shipping.airwayBill}</code>
+                </span>
+              </Col>
+            </Row>
+          )}
+          {/* Order Number (Komerce) - Hanya untuk Admin */}
+          {isAdmin && (order.shipping?.komerceOrderNo || order.shipping?.komerceOrderId) && (
+            <Row className='mt-2'>
+              <Col xs='4'>
+                <p className='one-line-ellipsis'>Order Number (Komerce)</p>
+              </Col>
+              <Col xs='8'>
+                <span className='order-label one-line-ellipsis'>
+                  <code>{order.shipping.komerceOrderNo || order.shipping.komerceOrderId || '-'}</code>
                 </span>
               </Col>
             </Row>

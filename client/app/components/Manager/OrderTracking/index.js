@@ -65,15 +65,21 @@ class OrderTracking extends React.PureComponent {
                     loading: false
                 });
             } else {
+                // Error dari API
+                const errorMsg = response.data.error || 'Failed to fetch tracking information';
                 this.setState({
-                    error: response.data.error || 'Failed to fetch tracking information',
+                    error: errorMsg,
                     loading: false
                 });
             }
         } catch (error) {
             console.error('Error fetching tracking:', error);
+            // Extract error message dari response
+            const errorMsg = error.response?.data?.error || 
+                           error.response?.data?.message ||
+                           'Failed to fetch tracking information';
             this.setState({
-                error: error.response?.data?.error || 'Failed to fetch tracking information',
+                error: errorMsg,
                 loading: false
             });
         }

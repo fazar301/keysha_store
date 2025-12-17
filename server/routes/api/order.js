@@ -608,7 +608,85 @@ router.post('/:orderId/generate-label', auth, async (req, res) => {
     const additionalCost = 0;
     const grandTotal = productTotal + shippingCost + additionalCost - shippingCashback;
     const codValue = 0; // 0 untuk BANK TRANSFER, sama dengan grandTotal untuk COD
-    const insuranceValue = Math.round(grandTotal * 0.01); // 1% dari grand total
+
+    // Fungsi untuk menghitung insurance_value berdasarkan courier
+    // Minimum order value untuk insurance adalah IDR 300,000
+    const calculateInsuranceValue = (courier, totalProductPrice, grandTotal) => {
+      const MIN_ORDER_VALUE_FOR_INSURANCE = 300000;
+
+      // Jika total product price kurang dari minimum, return 0
+      if (totalProductPrice < MIN_ORDER_VALUE_FOR_INSURANCE) {
+        return 0;
+      }
+
+      const courierUpper = courier.toUpperCase();
+      let insuranceValue = 0;
+
+      switch (courierUpper) {
+        case 'JNE':
+          // (0.2% * total_product_price) + Rp5.000
+          insuranceValue = (totalProductPrice * 0.002) + 5000;
+          break;
+
+        case 'SICEPAT':
+          // 0.3% * grand_total (hanya jika grand_total > IDR 500.000)
+          if (grandTotal > 500000) {
+            insuranceValue = grandTotal * 0.003;
+          } else {
+            insuranceValue = 0;
+          }
+          break;
+
+        case 'IDEXPRESS':
+        case 'ID EXPRESS':
+          // 0.2% * total_product_price
+          insuranceValue = totalProductPrice * 0.002;
+          break;
+
+        case 'SAP':
+          // (0.3% * total_product_price) + Rp2.000/AWB
+          insuranceValue = (totalProductPrice * 0.003) + 2000;
+          break;
+
+        case 'NINJA':
+        case 'NINJA EXPRESS':
+          // Jika total_product_price ≤ IDR 1.000.000, insurance_value = IDR 2.500
+          // Jika total_product_price > IDR 1.000.000, insurance_value = 0.25% × total_product_price
+          if (totalProductPrice <= 1000000) {
+            insuranceValue = 2500;
+          } else {
+            insuranceValue = totalProductPrice * 0.0025;
+          }
+          break;
+
+        case 'JNT':
+        case 'J&T':
+        case 'JNT EXPRESS':
+          // 0.2% * total_product_price
+          insuranceValue = totalProductPrice * 0.002;
+          break;
+
+        case 'LION':
+        case 'LION PARCEL':
+          // 0.3% * total_product_price
+          insuranceValue = totalProductPrice * 0.003;
+          break;
+
+        case 'GOSEND':
+          // Default ke Silver Insurance (Rp1.000)
+          // Bisa diubah ke Gold (Rp2.000) atau Platinum (Rp5.000) jika diperlukan
+          insuranceValue = 1000;
+          break;
+
+        default:
+          // Untuk courier lain, gunakan formula default: 0.2% dari total_product_price
+          insuranceValue = totalProductPrice * 0.002;
+          break;
+      }
+
+      // Pastikan insurance_value adalah float dengan 2 decimal places
+      return parseFloat(insuranceValue.toFixed(2));
+    };
 
     // Format order date (YYYY-MM-DD)
     const orderDate = new Date(orderDoc.created).toISOString().split('T')[0];
@@ -620,6 +698,71 @@ router.post('/:orderId/generate-label', auth, async (req, res) => {
         error: 'Origin address configuration incomplete. Please set ORIGIN_NAME, ORIGIN_PHONE, ORIGIN_ADDRESS, and ORIGIN_EMAIL in environment variables.'
       });
     }
+
+    // Map courier code/name ke format yang diharapkan Komerce API
+    // Komerce API mengharapkan courier code dalam format uppercase (JNE, POS, TIKI, dll)
+    const mapCourierToKomerce = (courier) => {
+      if (!courier) return 'JNE'; // Default
+
+      const courierLower = courier.toLowerCase().trim();
+
+      // Mapping courier codes dan names ke format Komerce
+      const courierMap = {
+        'jne': 'JNE',
+        'pos': 'POS',
+        'pos indonesia': 'POS',
+        'tiki': 'TIKI',
+        'sicepat': 'SICEPAT',
+        'jnt': 'JNT',
+        'jnt express': 'JNT',
+        'ninja': 'NINJA',
+        'ninja express': 'NINJA',
+        'lion': 'LION',
+        'lion parcel': 'LION',
+        'anteraja': 'ANTERAJA',
+        'rex': 'REX',
+        'rpx': 'RPX',
+        'sentral': 'SENTRAL',
+        'star': 'STAR',
+        'wahana': 'WAHANA',
+        'dse': 'DSE'
+      };
+
+      // Cek apakah courier ada di map
+      if (courierMap[courierLower]) {
+        return courierMap[courierLower];
+      }
+
+      // Jika tidak ada di map, coba extract code dari name
+      // Contoh: "JNE" -> "JNE", "POS Indonesia" -> "POS"
+      const extractedCode = courierLower.split(' ')[0];
+      if (courierMap[extractedCode]) {
+        return courierMap[extractedCode];
+      }
+
+      // Jika masih tidak ditemukan, gunakan uppercase dari input
+      return courier.toUpperCase();
+    };
+
+    const mappedCourier = mapCourierToKomerce(orderDoc.shipping.courier);
+
+    // Hitung insurance_value berdasarkan courier yang sudah di-mapping
+    const insuranceValue = calculateInsuranceValue(mappedCourier, productTotal, grandTotal);
+
+    // Commodity code diperlukan untuk beberapa courier seperti LION
+    // Panjang harus antara 3-6 karakter
+    // Default: 'GEN' (3 karakter) untuk barang umum, bisa di-set via env atau dari product
+    let defaultCommodityCode = process.env.DEFAULT_COMMODITY_CODE || 'GEN';
+
+    // Validasi panjang commodity_code (3-6 karakter)
+    if (defaultCommodityCode.length < 3 || defaultCommodityCode.length > 6) {
+      console.warn(`Invalid commodity_code length: ${defaultCommodityCode.length}. Using default 'GEN'.`);
+      defaultCommodityCode = 'GEN';
+    }
+
+    // Untuk LION, commodity_code wajib diisi
+    // Bisa juga ditambahkan untuk courier lain jika diperlukan
+    const requiresCommodityCode = mappedCourier === 'LION';
 
     const komerceOrderData = {
       order_date: orderDate,
@@ -636,7 +779,7 @@ router.post('/:orderId/generate-label', auth, async (req, res) => {
       receiver_address: req.body.destinationAddress || orderAddress.address || '',
       destination_pin_point: req.body.destinationPinPoint || '',
       receiver_email: req.body.destinationEmail || orderAddress.email || user.email || 'customer@example.com',
-      shipping: (orderDoc.shipping.courier || 'JNE').toUpperCase(),
+      shipping: mappedCourier,
       shipping_type: orderDoc.shipping.service || 'REG',
       payment_method: 'BANK TRANSFER', // Default, bisa diubah jika ada COD
       shipping_cost: shippingCost,
@@ -646,6 +789,8 @@ router.post('/:orderId/generate-label', auth, async (req, res) => {
       grand_total: grandTotal,
       cod_value: codValue,
       insurance_value: insuranceValue,
+      // Tambahkan commodity_code jika diperlukan (untuk LION dan courier lain yang memerlukan)
+      ...(requiresCommodityCode && { commodity_code: defaultCommodityCode }),
       order_details: cartDoc.products.map(item => ({
         product_name: item.product?.name || 'Item',
         product_variant_name: item.product?.variant || '',
@@ -655,36 +800,98 @@ router.post('/:orderId/generate-label', auth, async (req, res) => {
         product_height: item.product?.height || 8, // cm
         product_length: item.product?.length || 50, // cm
         qty: item.quantity || 1,
-        subtotal: Math.round((item.product?.price || 0) * (item.quantity || 1))
+        subtotal: Math.round((item.product?.price || 0) * (item.quantity || 1)),
+        // Tambahkan commodity_code di order_details juga jika diperlukan
+        ...(requiresCommodityCode && {
+          commodity_code: (() => {
+            const productCommodityCode = item.product?.commodityCode || defaultCommodityCode;
+            // Pastikan panjang antara 3-6 karakter
+            if (productCommodityCode.length >= 3 && productCommodityCode.length <= 6) {
+              return productCommodityCode;
+            }
+            return defaultCommodityCode;
+          })()
+        })
       }))
     };
 
     console.log('Storing order to Komerce:', komerceOrderData);
 
-    // Step 1: Store Order ke Komerce
-    const storeResult = await rajaOngkir.storeOrder(komerceOrderData);
+    // Cek apakah order sudah pernah di-store ke Komerce sebelumnya
+    // Jika sudah ada komerceOrderNo, gunakan itu langsung tanpa store ulang
+    const existingKomerceOrderNo = orderDoc.shipping?.komerceOrderNo;
+    const existingKomerceOrderId = orderDoc.shipping?.komerceOrderId;
+    
+    let storeResult;
+    let komerceOrderId;
+    let komerceOrderNo;
+    
+    if (existingKomerceOrderNo && existingKomerceOrderNo.trim() !== '') {
+      // Order sudah pernah di-store, gunakan order_no yang sudah ada
+      console.log('Using existing Komerce order:', {
+        order_no: existingKomerceOrderNo,
+        order_id: existingKomerceOrderId
+      });
+      
+      komerceOrderId = existingKomerceOrderId;
+      komerceOrderNo = existingKomerceOrderNo;
+      storeResult = { success: true, data: { order_id: komerceOrderId, order_no: komerceOrderNo } };
+    } else {
+      // Step 1: Store Order ke Komerce (hanya jika belum pernah di-store)
+      storeResult = await rajaOngkir.storeOrder(komerceOrderData);
 
-    if (!storeResult.success) {
-      // Berikan error message yang lebih informatif
-      let errorMessage = storeResult.error || 'Failed to store order to Komerce';
+      if (!storeResult.success) {
+        // Berikan error message yang lebih informatif
+        let errorMessage = storeResult.error || 'Failed to store order to Komerce';
 
-      // Jika error terkait balance, berikan pesan yang lebih jelas
-      if (errorMessage.toLowerCase().includes('balance') ||
-        errorMessage.toLowerCase().includes('insufficient') ||
-        errorMessage.toLowerCase().includes('saldo')) {
-        errorMessage = 'Saldo Komerce tidak mencukupi untuk membuat order. Silakan top up saldo terlebih dahulu melalui dashboard Komerce.';
+        // Jika error terkait balance, berikan pesan yang lebih jelas
+        if (errorMessage.toLowerCase().includes('balance') ||
+          errorMessage.toLowerCase().includes('insufficient') ||
+          errorMessage.toLowerCase().includes('saldo')) {
+          errorMessage = 'Saldo Komerce tidak mencukupi untuk membuat order. Silakan top up saldo terlebih dahulu melalui dashboard Komerce.';
+        }
+
+        return res.status(400).json({
+          success: false,
+          error: errorMessage,
+          errorCode: 'INSUFFICIENT_BALANCE',
+          details: 'Pastikan saldo Komerce Anda mencukupi untuk biaya pengiriman. Silakan hubungi administrator untuk top up saldo.'
+        });
       }
 
-      return res.status(400).json({
-        success: false,
-        error: errorMessage,
-        errorCode: 'INSUFFICIENT_BALANCE',
-        details: 'Pastikan saldo Komerce Anda mencukupi untuk biaya pengiriman. Silakan hubungi administrator untuk top up saldo.'
+      // Extract order_id dan order_no dari response
+      // Cek berbagai kemungkinan field name
+      komerceOrderId = storeResult.data.order_id || 
+                          storeResult.data.id || 
+                          storeResult.data.orderId ||
+                          null;
+    
+      komerceOrderNo = storeResult.data.order_no || 
+                          storeResult.data.orderNo || 
+                          storeResult.data.order_number ||
+                          storeResult.data['order_no'] ||
+                          '';
+      
+      console.log('Extracted from store order response:', {
+        order_id: komerceOrderId,
+        order_no: komerceOrderNo,
+        allKeys: Object.keys(storeResult.data || {}),
+        fullData: storeResult.data
       });
+      
+      // Simpan order_id dan order_no ke database
+      if (komerceOrderId || komerceOrderNo) {
+        await Order.updateOne(
+          { _id: orderId },
+          {
+            $set: {
+              'shipping.komerceOrderId': komerceOrderId,
+              'shipping.komerceOrderNo': komerceOrderNo
+            }
+          }
+        );
+      }
     }
-
-    const komerceOrderId = storeResult.data.order_id || storeResult.data.id;
-    const komerceOrderNo = storeResult.data.order_no || '';
 
     if (!komerceOrderId && !komerceOrderNo) {
       return res.status(400).json({
@@ -694,11 +901,141 @@ router.post('/:orderId/generate-label', auth, async (req, res) => {
       });
     }
 
-    console.log('Order stored to Komerce, order ID:', komerceOrderId, 'order_no:', komerceOrderNo);
+    console.log('Order stored to Komerce:', {
+      order_id: komerceOrderId,
+      order_no: komerceOrderNo,
+      fullResponse: storeResult.data
+    });
 
-    // Step 2: Print Label untuk mendapatkan AWB
-    // Gunakan order_no jika ada, jika tidak gunakan order_id
-    const orderNoForLabel = komerceOrderNo || komerceOrderId.toString();
+    // Validasi: order_no WAJIB ada untuk schedule pickup dan print label
+    // order_no biasanya format: KOM93589202512160900 (string dengan prefix KOM)
+    // order_id adalah integer dan TIDAK bisa digunakan untuk print label
+    if (!komerceOrderNo || komerceOrderNo.trim() === '') {
+      // Simpan order_id untuk retry nanti
+      await Order.updateOne(
+        { _id: orderId },
+        {
+          $set: {
+            'shipping.komerceOrderId': komerceOrderId,
+            'shipping.komerceOrderNo': '' // Kosong karena belum ada
+          }
+        }
+      );
+
+      return res.status(400).json({
+        success: false,
+        error: 'Order number (order_no) tidak ditemukan dalam response. Order sudah disimpan ke Komerce dengan order_id, tapi order_no belum tersedia.',
+        komerceOrderId: komerceOrderId,
+        komerceOrderNo: komerceOrderNo,
+        responseData: storeResult.data,
+        suggestion: 'Order number biasanya tersedia beberapa saat setelah order disimpan. Coba generate label lagi setelah beberapa detik, atau gunakan retry-label endpoint jika order sudah memiliki komerceOrderId.'
+      });
+    }
+
+    const orderNoForLabel = komerceOrderNo.trim();
+    
+    // Validasi format order_no (harus string, biasanya dimulai dengan KOM atau panjang minimal tertentu)
+    // Jika order_no terlihat seperti integer (hanya angka), kemungkinan itu adalah order_id yang salah
+    if (/^\d+$/.test(orderNoForLabel) && orderNoForLabel.length < 10) {
+      // Ini kemungkinan order_id, bukan order_no
+      await Order.updateOne(
+        { _id: orderId },
+        {
+          $set: {
+            'shipping.komerceOrderId': komerceOrderId,
+            'shipping.komerceOrderNo': orderNoForLabel
+          }
+        }
+      );
+
+      return res.status(400).json({
+        success: false,
+        error: `Order number yang diterima terlihat seperti order_id (${orderNoForLabel}), bukan order_no yang valid. Order_no biasanya format seperti 'KOM93589202512160900'. Order sudah disimpan dengan order_id: ${komerceOrderId}. Silakan tunggu beberapa saat dan coba lagi, atau gunakan retry-label endpoint.`,
+        komerceOrderId: komerceOrderId,
+        komerceOrderNo: orderNoForLabel,
+        responseData: storeResult.data,
+        suggestion: 'Order number mungkin belum tersedia langsung setelah store order. Tunggu beberapa detik dan coba generate label lagi, atau gunakan retry-label endpoint.'
+      });
+    }
+
+    // Step 2: Schedule Pickup untuk order (diperlukan sebelum print label)
+    // Hitung total weight untuk menentukan vehicle type
+    const totalWeight = cartDoc.products.reduce((sum, item) => {
+      return sum + ((item.product?.weight || 1000) * (item.quantity || 1));
+    }, 0);
+
+    // Tentukan vehicle type berdasarkan weight
+    // Motor: < 5kg, Mobil: 5-10kg, Truk: >= 10kg
+    let pickupVehicle = 'Motor';
+    if (totalWeight >= 10000) { // 10kg atau lebih
+      pickupVehicle = 'Truk';
+    } else if (totalWeight >= 5000) { // 5kg atau lebih
+      pickupVehicle = 'Mobil';
+    }
+
+    // Hitung pickup date dan time (minimal 90 menit dari sekarang atau order creation time)
+    const now = new Date();
+    const orderCreated = new Date(orderDoc.created);
+    const baseTime = orderCreated > now ? orderCreated : now;
+    
+    // Tambahkan 90 menit (5400000 ms) + buffer 30 menit untuk safety
+    const pickupDateTime = new Date(baseTime.getTime() + (90 + 30) * 60 * 1000);
+    
+    // Format pickup date (YYYY-MM-DD)
+    const pickupDate = pickupDateTime.toISOString().split('T')[0];
+    
+    // Format pickup time (HH:MM)
+    const hours = String(pickupDateTime.getHours()).padStart(2, '0');
+    const minutes = String(pickupDateTime.getMinutes()).padStart(2, '0');
+    const pickupTime = `${hours}:${minutes}`;
+
+    console.log('Scheduling pickup:', {
+      orderNo: orderNoForLabel,
+      pickupDate: pickupDate,
+      pickupTime: pickupTime,
+      pickupVehicle: pickupVehicle,
+      totalWeight: totalWeight
+    });
+
+    const pickupResult = await rajaOngkir.schedulePickup(
+      orderNoForLabel,
+      pickupDate,
+      pickupTime,
+      pickupVehicle
+    );
+
+    if (!pickupResult.success) {
+      // Order sudah di-store, tapi pickup gagal
+      await Order.updateOne(
+        { _id: orderId },
+        {
+          $set: {
+            'shipping.komerceOrderId': komerceOrderId,
+            'shipping.komerceOrderNo': komerceOrderNo
+          }
+        }
+      );
+
+      return res.status(400).json({
+        success: false,
+        error: pickupResult.error || 'Failed to schedule pickup. Order stored but pickup not scheduled.',
+        komerceOrderId: komerceOrderId,
+        komerceOrderNo: komerceOrderNo,
+        details: pickupResult.details || null,
+        suggestion: 'Pastikan pickup date dan time minimal 90 menit dari sekarang. Coba schedule pickup manual atau gunakan retry endpoint.'
+      });
+    }
+
+    // Jika pickup berhasil, dapatkan AWB dari response pickup (jika ada)
+    const awbFromPickup = pickupResult.awb || pickupResult.data?.awb;
+
+    console.log('Pickup scheduled successfully:', {
+      orderNo: orderNoForLabel,
+      awb: awbFromPickup,
+      pickupData: pickupResult.data
+    });
+
+    // Step 3: Print Label untuk mendapatkan AWB (jika belum dapat dari pickup)
     const pageFormat = req.body.page || 'page_5'; // Default thermal 10cm x 10cm
     const labelResult = await rajaOngkir.printLabel(orderNoForLabel, pageFormat);
 
@@ -709,21 +1046,40 @@ router.post('/:orderId/generate-label', auth, async (req, res) => {
         { _id: orderId },
         {
           $set: {
-            'shipping.komerceOrderId': komerceOrderId
+            'shipping.komerceOrderId': komerceOrderId,
+            'shipping.komerceOrderNo': komerceOrderNo
           }
         }
       );
 
+      // Berikan error message yang lebih informatif
+      let errorMessage = labelResult.error || 'Failed to print label. Order stored but AWB not available.';
+      
+      // Tambahkan informasi tambahan jika ada
+      if (labelResult.details) {
+        console.error('Print Label error details:', labelResult.details);
+      }
+      
+      // Jika error terkait order_no not found, berikan saran
+      if (errorMessage.toLowerCase().includes('not found') || 
+          errorMessage.toLowerCase().includes('order_no')) {
+        errorMessage = `Order number tidak ditemukan atau order belum siap untuk print label. Order ID: ${komerceOrderId}, Order No: ${komerceOrderNo}. Pastikan order sudah di-schedule untuk pickup terlebih dahulu.`;
+      }
+
       return res.status(400).json({
         success: false,
-        error: labelResult.error || 'Failed to print label. Order stored but AWB not available.',
-        komerceOrderId: komerceOrderId // Return untuk retry nanti
+        error: errorMessage,
+        komerceOrderId: komerceOrderId,
+        komerceOrderNo: komerceOrderNo,
+        details: labelResult.details || null,
+        suggestion: 'Pastikan order sudah di-schedule untuk pickup sebelum generate label. Gunakan retry-label endpoint jika order sudah ada komerceOrderId.'
       });
     }
 
     // Extract AWB dari response
-    // AWB bisa dari label response atau dari order_no
-    const awbNumber = labelResult.data.airway_bill ||
+    // Prioritas: AWB dari pickup > AWB dari label response > order_no
+    const awbNumber = awbFromPickup ||
+      labelResult.data.airway_bill ||
       labelResult.data.awb ||
       labelResult.data.airwayBill ||
       labelResult.data.cnote ||
@@ -744,6 +1100,7 @@ router.post('/:orderId/generate-label', auth, async (req, res) => {
         $set: {
           'shipping.airwayBill': awbNumber,
           'shipping.komerceOrderId': komerceOrderId,
+          'shipping.komerceOrderNo': komerceOrderNo,
           'shipping.labelPrintedAt': new Date()
         }
       }

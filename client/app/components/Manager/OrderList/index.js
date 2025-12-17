@@ -9,6 +9,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 import { formatDate } from '../../../utils/date';
+import { formatIDR } from '../../../utils';
 
 const OrderList = props => {
   const { orders } = props;
@@ -19,11 +20,10 @@ const OrderList = props => {
       return (
         <img
           className='item-image'
-          src={`${
-            product && product?.imageUrl
+          src={`${product && product?.imageUrl
               ? product?.imageUrl
               : '/images/placeholder-image.png'
-          }`}
+            }`}
         />
       );
     } else {
@@ -62,9 +62,7 @@ const OrderList = props => {
                   </div>
                   <div className='mb-1'>
                     <span>Order Total</span>
-                    <span className='order-label'>{` $${
-                      order?.totalWithTax ? order?.totalWithTax : 0
-                    }`}</span>
+                    <span className='order-label'>{formatIDR(order?.totalWithTax || 0)}</span>
                   </div>
                 </div>
               </div>
